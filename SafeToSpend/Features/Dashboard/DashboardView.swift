@@ -22,6 +22,7 @@ struct DashboardView: View {
                     heroCard
                     cycleProgressCard
                     breakdownCard
+                    RecurringExpenseCalendarCard()
                     quickInsightsCard
                     
                     // Bottom padding for tab bar
@@ -813,6 +814,10 @@ struct DashboardView: View {
             do { return try await APIClient.shared.listExpenses() }
             catch { return [] }
         }()
+        async let billsTask: [BillResponse] = {
+            do { return try await APIClient.shared.listBills() }
+            catch { return [] }
+        }()
         
         do {
             let freshToday = try await todayTask
@@ -820,6 +825,8 @@ struct DashboardView: View {
             appState.todayData = freshToday
             insights = await insightsTask
             allExpenses = await expensesTask
+            let bills = await billsTask
+            RecurringExpenseStore.shared.syncWithBackendBills(bills)
             
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 animateAmount = true

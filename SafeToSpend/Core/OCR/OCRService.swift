@@ -98,11 +98,11 @@ actor OCRService {
         }
     }
     
-    /// Parse multiple screenshots (e.g. UPI history screenshots at end of day)
-    func parseMultipleImages(_ images: [UIImage]) async -> [ParsedExpenseCandidate] {
+    /// Parse multiple screenshots (e.g. UPI history screenshots or bill photos)
+    func parseMultipleImages(_ images: [UIImage], source: String = "upi_screenshot") async -> [ParsedExpenseCandidate] {
         var allCandidates: [ParsedExpenseCandidate] = []
         for img in images {
-            let candidates = await parseImage(img, source: "upi_screenshot")
+            let candidates = await parseImage(img, source: source)
             allCandidates.append(contentsOf: candidates)
         }
         
@@ -124,6 +124,11 @@ actor OCRService {
     
     private nonisolated func extractExpenses(from lines: [String], source: String) -> [ParsedExpenseCandidate] {
         let todayDateStr = formatDate(Date())
+        
+        // Strategy 0: Specialized Invoice / Bill Document Detection (Tax Invoices, Utility Bills, Statements)
+        if let billCandidate = extractInvoiceBill(from: lines, source: source, defaultDate: todayDateStr) {
+            return [billCandidate]
+        }
         
         // Strategy 1: Look for structured transaction blocks (Samsung Pay, GPay history, PhonePe, etc.)
         let blockCandidates = extractTransactionBlocks(from: lines, source: source, defaultDate: todayDateStr)
@@ -386,13 +391,144 @@ actor OCRService {
         )
     }
     
+    // MARK: - Strategy 0: Invoice & Bill Document Detection
+    
+    private nonisolated func extractInvoiceBill(from lines: [String], source: String, defaultDate: String) -> ParsedExpenseCandidate? {
+        guard !lines.isEmpty else { return nil }
+        
+        let fullText = lines.joined(separator: " ").lowercased()
+        
+        // Check if this document looks like an invoice, bill, utility receipt, or statement
+        let billKeywords = [
+            "tax invoice", "invoice", "bill to", "due date", "bill date",
+            "amount payable", "net payable", "hsn code", "gstin", "order no",
+            "statement", "amount chargeable", "total amount", "grand total",
+            "electricity bill", "water bill", "broadband", "subscription"
+        ]
+        let hasBillIndicator = billKeywords.contains(where: { fullText.contains($0) })
+        guard hasBillIndicator else { return nil }
+        
+        // 1. Detect Merchant / Company name from top lines
+        var detectedMerchant: String?
+        for line in lines.prefix(10) {
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            let lower = trimmed.lowercased()
+            if lower.contains("pvt ltd") || lower.contains("ltd") || lower.contains("limited") ||
+               lower.contains("services") || lower.contains("technologies") || lower.contains("store") ||
+               lower.contains("telecom") || lower.contains("broadband") || lower.contains("power") ||
+               lower.contains("airtel") || lower.contains("jio") || lower.contains("bescom") {
+                detectedMerchant = trimmed
+                break
+            }
+        }
+        
+        if detectedMerchant == nil {
+            let skipWords: Set<String> = [
+                "tax invoice", "invoice", "sender", "bill to:", "ship to:",
+                "original", "duplicate", "receipt", "cash receipt", "retail invoice"
+            ]
+            var candidates: [String] = []
+            for line in lines.prefix(6) {
+                let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                let lower = trimmed.lowercased()
+                if !skipWords.contains(lower) && !lower.hasPrefix("gst") && !lower.hasPrefix("ph no") && trimmed.count >= 2 && trimmed.count <= 40 {
+                    candidates.append(trimmed)
+                }
+            }
+            if candidates.count >= 2 && candidates[0].count < 15 && candidates[1].count < 15 {
+                detectedMerchant = "\(candidates[0]) \(candidates[1])"
+            } else if let first = candidates.first {
+                detectedMerchant = first
+            }
+        }
+        
+        // 2. Extract invoice / due date
+        var detectedDate = defaultDate
+        for line in lines {
+            let lower = line.lowercased()
+            if lower.contains("date") || lower.contains("due") {
+                if let d = extractDateFromLine(line) {
+                    detectedDate = d
+                    break
+                }
+            }
+        }
+        if detectedDate == defaultDate {
+            for line in lines {
+                if let d = extractDateFromLine(line) {
+                    detectedDate = d
+                    break
+                }
+            }
+        }
+        
+        // 3. Extract total bill amount
+        var candidateAmounts: [Double] = []
+        for (i, line) in lines.enumerated() {
+            let lower = line.lowercased().trimmingCharacters(in: .whitespaces)
+            let isAnchor = lower.contains("total") || lower.contains("amount payable") ||
+                           lower.contains("net payable") || lower.contains("grand total") ||
+                           lower.contains("amount chargeable") || lower == "amount" ||
+                           lower.contains("amount (inr)") || lower.contains("balance due") ||
+                           lower.contains("invoice value")
+            
+            if isAnchor {
+                for offset in [-2, -1, 0, 1, 2, 3] {
+                    let adjIdx = i + offset
+                    guard adjIdx >= 0 && adjIdx < lines.count else { continue }
+                    let adjLine = lines[adjIdx].trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "")
+                    
+                    let regex = try? NSRegularExpression(pattern: #"([0-9]+(?:\.[0-9]{1,2})?)"#)
+                    let range = NSRange(adjLine.startIndex..<adjLine.endIndex, in: adjLine)
+                    if let match = regex?.firstMatch(in: adjLine, options: [], range: range),
+                       let numRange = Range(match.range(at: 1), in: adjLine),
+                       let val = Double(adjLine[numRange]), val >= 10 && val < 5_000_000 {
+                        // Exclude pincodes (6-digit integers without decimals)
+                        if val >= 100000 && val <= 999999 && !adjLine.contains(".") {
+                            continue
+                        }
+                        candidateAmounts.append(val)
+                    }
+                }
+            }
+        }
+        
+        // Fallback: check trailing lines for numbers
+        if candidateAmounts.isEmpty {
+            for line in lines.suffix(12).reversed() {
+                let clean = line.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "")
+                if let val = Double(clean), val >= 10 && val < 1_000_000 {
+                    if !(val >= 100000 && val <= 999999 && !clean.contains(".")) {
+                        candidateAmounts.append(val)
+                    }
+                }
+            }
+        }
+        
+        guard let maxAmount = candidateAmounts.max(), maxAmount > 0 else { return nil }
+        
+        let merchantName = detectedMerchant ?? "Bill"
+        return ParsedExpenseCandidate(
+            amountPaise: Int(round(maxAmount * 100)),
+            merchant: merchantName,
+            category: guessCategory(for: merchantName),
+            occurredOn: detectedDate,
+            confidence: 0.95,
+            isSelected: true,
+            isBill: true,
+            source: source,
+            rawTextSnippet: lines.prefix(15).joined(separator: "\n")
+        )
+    }
+    
     // MARK: - Amount Extraction
     
     /// Extracts ₹ amount in paise from a line. Returns nil if no amount found.
     private nonisolated func extractRupeeAmount(from line: String) -> Int? {
-        // 1. Matches rupee symbol or corrupted OCR representations:
+        // 1. Matches rupee symbol or explicit currency representations:
         // ₹255.00, ₴255.00, ·36.00, •140.00, Rs. 500, INR 255, -₹250
-        let prefixPattern = #"(?:[₹₴·•*~]|Rs\.?|INR|[-–—])\s*([0-9]{1,3}(?:[,][0-9]{2,3})*(?:\.[0-9]{1,2})?)"#
+        // Notice: do NOT match raw hyphen '-' without currency symbol to avoid pincodes & dates
+        let prefixPattern = #"(?:[-–—]?\s*(?:[₹₴·•*~]|Rs\.?|INR))\s*([0-9]{1,3}(?:[,][0-9]{2,3})*(?:\.[0-9]{1,2})?)"#
         if let regex = try? NSRegularExpression(pattern: prefixPattern, options: .caseInsensitive) {
             let range = NSRange(line.startIndex..<line.endIndex, in: line)
             if let match = regex.firstMatch(in: line, options: [], range: range),
@@ -404,11 +540,11 @@ actor OCRService {
             }
         }
         
-        // 2. Standalone number with 2 decimal places (e.g. "255.00" or "36.00")
+        // 2. Standalone number with 1 or 2 decimal places (e.g. "255.00", "36.00", "1499.0")
         // Only if line is short (<= 15 chars) to prevent matching phone numbers or timestamps
         let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count <= 15 {
-            let decimalPattern = #"^[^\d]*([0-9]{1,3}(?:[,][0-9]{2,3})*\.[0-9]{2})[^\d]*$"#
+            let decimalPattern = #"^[^\d]*([0-9]{1,3}(?:[,][0-9]{2,3})*\.[0-9]{1,2})[^\d]*$"#
             if let regex = try? NSRegularExpression(pattern: decimalPattern, options: []) {
                 let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
                 if let match = regex.firstMatch(in: trimmed, options: [], range: range),
@@ -447,9 +583,9 @@ actor OCRService {
             }
         }
         
-        // Match dates like "23 OCT 2026, 14:43:39" or "22 OCT 2026"
+        // Match dates like "02-Jan-2019", "23 OCT 2026, 14:43:39", "2026-10-24"
         let dateTimePatterns: [String] = [
-            #"(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})"#,
+            #"(\d{1,2}[-\s][A-Za-z]{3,9}[-\s]\d{4})"#,
             #"(\d{4}-\d{2}-\d{2})"#,
             #"(\d{1,2}/\d{1,2}/\d{4})"#,
             #"(\d{1,2}-\d{1,2}-\d{4})"#
@@ -464,6 +600,7 @@ actor OCRService {
                 
                 let formats = [
                     "dd MMM yyyy", "d MMM yyyy",
+                    "dd-MMM-yyyy", "d-MMM-yyyy",
                     "dd MMMM yyyy", "d MMMM yyyy",
                     "yyyy-MM-dd",
                     "dd/MM/yyyy", "d/M/yyyy",
