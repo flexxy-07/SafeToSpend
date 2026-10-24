@@ -30,6 +30,7 @@
 		B10000010000000000000004 /* ExportDataSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000004 /* ExportDataSheet.swift */; };
 		B10000010000000000000005 /* DailyReminderSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000005 /* DailyReminderSheet.swift */; };
 		B10000010000000000000006 /* PrivacySecuritySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000006 /* PrivacySecuritySheet.swift */; };
+		B10000010000000000000007 /* ZenShowcaseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000007 /* ZenShowcaseView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +58,7 @@
 		F10000010000000000000004 /* ExportDataSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataSheet.swift; sourceTree = "<group>"; };
 		F10000010000000000000005 /* DailyReminderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReminderSheet.swift; sourceTree = "<group>"; };
 		F10000010000000000000006 /* PrivacySecuritySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySecuritySheet.swift; sourceTree = "<group>"; };
+		F10000010000000000000007 /* ZenShowcaseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZenShowcaseView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -146,6 +148,7 @@
 				F10000010000000000000004 /* ExportDataSheet.swift */,
 				F10000010000000000000005 /* DailyReminderSheet.swift */,
 				F10000010000000000000006 /* PrivacySecuritySheet.swift */,
+				F10000010000000000000007 /* ZenShowcaseView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -291,6 +294,7 @@
 				B10000010000000000000004 /* ExportDataSheet.swift in Sources */,
 				B10000010000000000000005 /* DailyReminderSheet.swift in Sources */,
 				B10000010000000000000006 /* PrivacySecuritySheet.swift in Sources */,
+				B10000010000000000000007 /* ZenShowcaseView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

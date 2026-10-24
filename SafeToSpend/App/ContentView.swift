@@ -49,15 +49,7 @@ struct ContentView: View {
             VStack(spacing: 24) {
                 Spacer()
                 
-                Image("AppLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .stroke(Color.stsBorder, lineWidth: 1)
-                    )
+                MascotAvatarView(mascot: .ryo, size: 76)
                 
                 VStack(spacing: 6) {
                     Text("SafeToSpend Locked")

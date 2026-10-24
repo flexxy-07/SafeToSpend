@@ -69,36 +69,57 @@ struct BillsView: View {
     private var headerView: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("Bills")
-                    .font(.stsLargeTitle)
-                    .foregroundStyle(.stsPrimary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Bills")
+                        .font(.zenHeading(28, weight: .bold))
+                        .foregroundStyle(Color.zenInk)
+                    Text("Recurring obligations")
+                        .font(.zenBody(12))
+                        .foregroundStyle(Color.zenPlumGrey)
+                }
                 
                 Spacer()
                 
                 Button {
                     showAddBill = true
                 } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.stsAccent)
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .bold))
+                        Text("Add Bill")
+                            .font(.zenHeading(13, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        LinearGradient(colors: [Color.zenCrimson, Color.zenCrimsonDark], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color.zenGold.opacity(0.4), lineWidth: 1)
+                    )
+                    .shadow(color: Color.zenCrimson.opacity(0.3), radius: 6, y: 3)
                 }
             }
             
             if !bills.isEmpty {
                 // Summary bar
-                HStack(spacing: 16) {
+                HStack(spacing: 14) {
                     summaryTile(
-                        title: "Unpaid",
+                        title: "Upcoming",
+                        icon: "clock.badge.exclamationmark.fill",
                         value: totalUnpaid.toRupees,
                         count: unpaidBills.count,
-                        color: .stsWarning
+                        color: .zenCrimson
                     )
                     
                     summaryTile(
-                        title: "Paid",
+                        title: "Settled",
+                        icon: "checkmark.seal.fill",
                         value: paidBills.reduce(0) { $0 + $1.amountPaise }.toRupees,
                         count: paidBills.count,
-                        color: .stsAccent
+                        color: .zenJade
                     )
                 }
             }
@@ -107,24 +128,24 @@ struct BillsView: View {
         .padding(.top, 16)
     }
     
-    private func summaryTile(title: String, value: String, count: Int, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private func summaryTile(title: String, icon: String, value: String, count: Int, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Circle()
-                    .fill(color)
-                    .frame(width: 6, height: 6)
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(color)
                 
                 Text("\(title) (\(count))")
-                    .font(.stsSmall)
-                    .foregroundStyle(.stsSecondary)
+                    .font(.zenHeading(11, weight: .bold))
+                    .foregroundStyle(Color.zenPlumGrey)
             }
             
             Text(value)
-                .font(.stsHeadline)
-                .foregroundStyle(.stsPrimary)
+                .font(.zenNumber(18, weight: .bold))
+                .foregroundStyle(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cardStyle(padding: 12)
+        .glassCard(variant: .default, cornerRadius: 18, padding: 14)
     }
     
     // MARK: - Bills List
@@ -132,7 +153,7 @@ struct BillsView: View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(spacing: 8) {
                 if !unpaidBills.isEmpty {
-                    sectionLabel("Upcoming")
+                    sectionLabel("Upcoming Commitments")
                     
                     ForEach(unpaidBills) { bill in
                         billRow(bill)
@@ -140,7 +161,7 @@ struct BillsView: View {
                 }
                 
                 if !paidBills.isEmpty {
-                    sectionLabel("Paid")
+                    sectionLabel("Settled Bills")
                         .padding(.top, 8)
                     
                     ForEach(paidBills) { bill in
@@ -160,40 +181,56 @@ struct BillsView: View {
     
     private func sectionLabel(_ text: String) -> some View {
         HStack {
-            Text(text)
-                .font(.stsCaption)
-                .foregroundStyle(.stsSecondary)
+            Text(text.uppercased())
+                .font(.system(size: 11, weight: .bold, design: .serif))
+                .tracking(0.8)
+                .foregroundStyle(Color.zenPlumGrey)
             Spacer()
         }
-        .padding(.top, 4)
+        .padding(.top, 6)
+    }
+    
+    private func billColor(for bill: BillResponse) -> Color {
+        if bill.isPaid { return .zenJade }
+        switch bill.name.lowercased() {
+        case let n where n.contains("rent") || n.contains("house"): return .zenCrimson
+        case let n where n.contains("power") || n.contains("electric") || n.contains("utilit"): return .zenGoldDeep
+        case let n where n.contains("water"): return .zenSkyTop
+        case let n where n.contains("wifi") || n.contains("internet"): return .zenSkyDeep
+        case let n where n.contains("phone") || n.contains("mobile"): return .zenBlossomDeep
+        default: return .zenCrimson
+        }
     }
     
     private func billRow(_ bill: BillResponse) -> some View {
-        HStack(spacing: 12) {
+        let bColor = billColor(for: bill)
+        
+        return HStack(spacing: 12) {
+            // Themed Icon Badge
             Image(systemName: bill.billIcon)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 40, height: 40)
-                .background(Color.stsElevated)
+                .foregroundStyle(bColor)
+                .frame(width: 42, height: 42)
+                .background(bColor.opacity(0.12))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color.stsBorder, lineWidth: 1)
+                        .stroke(bColor.opacity(0.28), lineWidth: 1)
                 )
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(bill.name)
-                    .font(.stsHeadline)
-                    .foregroundStyle(.stsPrimary)
+                    .font(.zenHeading(15, weight: .bold))
+                    .foregroundStyle(bill.isPaid ? Color.zenPlumGrey : Color.zenInk)
                 
                 HStack(spacing: 6) {
                     Text("Due \(formatDueDate(bill.dueDate))")
-                        .font(.stsSmall)
-                        .foregroundStyle(bill.isPaid ? .stsTertiary : .stsWarning)
+                        .font(.zenBody(11, weight: .medium))
+                        .foregroundStyle(bill.isPaid ? Color.zenPlumGrey : Color.zenCrimson)
                     
                     Text("• \(bill.cadence.capitalized)")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsTertiary)
+                        .font(.zenBody(11))
+                        .foregroundStyle(Color.zenPlumGrey)
                 }
             }
             
@@ -201,27 +238,44 @@ struct BillsView: View {
             
             VStack(alignment: .trailing, spacing: 4) {
                 Text(bill.amountPaise.toRupees)
-                    .font(.stsHeadline)
-                    .foregroundStyle(.stsPrimary)
+                    .font(.zenNumber(16, weight: .bold))
+                    .foregroundStyle(bill.isPaid ? Color.zenPlumGrey : Color.zenInk)
                 
                 if bill.isPaid {
                     HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.caption2)
-                        Text("Paid")
-                            .font(.stsSmall)
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("PAID")
+                            .font(.system(size: 10, weight: .bold, design: .serif))
                     }
-                    .foregroundStyle(.stsAccent)
+                    .foregroundStyle(Color.zenJadeDark)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(Color.zenJade.opacity(0.12))
+                    .clipShape(Capsule())
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 9))
+                        Text("DUE")
+                            .font(.system(size: 10, weight: .bold, design: .serif))
+                    }
+                    .foregroundStyle(Color.zenCrimson)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(Color.zenCrimson.opacity(0.10))
+                    .clipShape(Capsule())
                 }
             }
         }
         .padding(14)
-        .background(Color.stsCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Color.white.opacity(0.78))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.stsBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(LinearGradient.zenGlassBorderGradient, lineWidth: 1)
         )
+        .shadow(color: Color.zenInk.opacity(0.04), radius: 6, y: 3)
         .contextMenu {
             if !bill.isPaid {
                 Button {
@@ -238,8 +292,8 @@ struct BillsView: View {
     private var loadingView: some View {
         VStack(spacing: 8) {
             ForEach(0..<4, id: \.self) { _ in
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.stsCardBackground)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.6))
                     .frame(height: 68)
                     .shimmer()
             }
@@ -252,32 +306,39 @@ struct BillsView: View {
             VStack(spacing: 16) {
                 Spacer(minLength: 60)
                 
-                Image(systemName: "doc.text")
+                Image(systemName: "doc.text.fill")
                     .font(.system(size: 48))
-                    .foregroundStyle(.stsTertiary)
+                    .foregroundStyle(Color.zenPlumGrey.opacity(0.4))
                 
                 Text("No bills added")
-                    .font(.stsTitle)
-                    .foregroundStyle(.stsPrimary)
+                    .font(.zenHeading(20, weight: .bold))
+                    .foregroundStyle(Color.zenInk)
                 
                 Text("Add your recurring bills to keep\ntrack of commitments")
-                    .font(.stsBody)
-                    .foregroundStyle(.stsSecondary)
+                    .font(.zenBody(13))
+                    .foregroundStyle(Color.zenPlumGrey)
                     .multilineTextAlignment(.center)
                 
                 Button {
                     showAddBill = true
                 } label: {
-                    HStack {
+                    HStack(spacing: 6) {
                         Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .bold))
                         Text("Add Bill")
+                            .font(.zenHeading(14, weight: .bold))
                     }
-                    .font(.stsHeadline)
-                    .foregroundStyle(.stsAccent)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(Color.stsAccent.opacity(0.12))
+                    .background(
+                        LinearGradient(colors: [Color.zenCrimson, Color.zenCrimsonDark], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
                     .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color.zenGold.opacity(0.4), lineWidth: 1)
+                    )
+                    .shadow(color: Color.zenCrimson.opacity(0.3), radius: 6, y: 3)
                 }
                 
                 Spacer(minLength: 80)

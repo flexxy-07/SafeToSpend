@@ -415,6 +415,7 @@ struct RecurringExpenseCalendarCard: View {
     @State private var selectedDay: Int? = nil
     @State private var showDetailPopup = false
     @State private var showAddSheet = false
+    @State private var isCalendarExpanded = true
     
     private let calendar = Calendar.current
     private let daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
@@ -424,21 +425,37 @@ struct RecurringExpenseCalendarCard: View {
             // 1. Header: (↻) RECURRING PAYMENTS  +
             topHeaderView
             
-            // 2. Navigation Pills: [ Jan ▾ | 23 ▾ ]    [ < | cal | > ]
-            navigationPillsView
-            
-            // 3. Days of Week: Su  Mo  Tu  We  Th  Fr  Sa
-            daysOfWeekHeader
-            
-            // 4. Calendar Grid with top-left date badge & centered brand icon
-            calendarGridView
+            if isCalendarExpanded {
+                // 2. Navigation Pills: [ Jan ▾ | 23 ▾ ]    [ < | cal | > ]
+                navigationPillsView
+                
+                // 3. Days of Week: Su  Mo  Tu  We  Th  Fr  Sa
+                daysOfWeekHeader
+                
+                // 4. Calendar Grid with top-left date badge & centered brand icon
+                calendarGridView
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.zenPlumGrey)
+                    Text("\(store.items.count) recurring commitments tracked")
+                        .font(.zenBody(12))
+                        .foregroundStyle(Color.zenPlumGrey)
+                    Spacer()
+                }
+                .padding(.top, -6)
+            }
         }
-        .padding(18)
-        .background(Color.stsCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.stsBorder, lineWidth: 1)
+        .glassCard(variant: .default, cornerRadius: 20)
+        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .highPriorityGesture(
+            TapGesture(count: 2).onEnded {
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                    isCalendarExpanded.toggle()
+                    Haptics.impact(.medium)
+                }
+            }
         )
         .sheet(isPresented: $showDetailPopup) {
             if let day = selectedDay {
@@ -450,7 +467,7 @@ struct RecurringExpenseCalendarCard: View {
                 )
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
-                .presentationBackground(Color.stsCardBackground)
+                .presentationBackground(Color.white.opacity(0.95))
             }
         }
         .sheet(isPresented: $showAddSheet) {
@@ -459,7 +476,7 @@ struct RecurringExpenseCalendarCard: View {
             }
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
-            .presentationBackground(Color.stsCardBackground)
+            .presentationBackground(Color.white.opacity(0.95))
         }
     }
     
@@ -467,22 +484,50 @@ struct RecurringExpenseCalendarCard: View {
     private var topHeaderView: some View {
         HStack(spacing: 8) {
             Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.white)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Color.zenCrimson)
             
             Text("RECURRING PAYMENTS")
-                .font(.system(size: 13, weight: .bold))
-                .tracking(1.0)
-                .foregroundStyle(.white)
+                .font(.system(size: 12, weight: .bold, design: .serif))
+                .tracking(0.8)
+                .foregroundStyle(Color.zenInk)
             
             Spacer()
+            
+            Button {
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                    isCalendarExpanded.toggle()
+                    Haptics.impact(.medium)
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(isCalendarExpanded ? "COLLAPSE" : "EXPAND")
+                        .font(.system(size: 10, weight: .bold, design: .serif))
+                    Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                }
+                .foregroundStyle(Color.zenCrimson)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.zenCrimson.opacity(0.08))
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule().stroke(Color.zenCrimson.opacity(0.2), lineWidth: 1)
+                )
+            }
             
             Button {
                 showAddSheet = true
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color.zenCrimson)
+                    .frame(width: 28, height: 28)
+                    .background(Color.white.opacity(0.75))
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().stroke(Color.zenPlumBorder, lineWidth: 1)
+                    )
             }
         }
     }
@@ -501,17 +546,17 @@ struct RecurringExpenseCalendarCard: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text(shortMonthString)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .font(.zenBody(13, weight: .semibold))
+                            .foregroundStyle(Color.zenInk)
                         
                         Image(systemName: "arrowtriangle.down.fill")
                             .font(.system(size: 6))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(Color.zenPlumGrey)
                     }
                 }
                 
                 Rectangle()
-                    .fill(Color.white.opacity(0.2))
+                    .fill(Color.zenPlumBorder)
                     .frame(width: 1, height: 12)
                 
                 Menu {
@@ -525,22 +570,22 @@ struct RecurringExpenseCalendarCard: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text(verbatim: shortYearString)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .font(.zenBody(13, weight: .semibold))
+                            .foregroundStyle(Color.zenInk)
                         
                         Image(systemName: "arrowtriangle.down.fill")
                             .font(.system(size: 6))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(Color.zenPlumGrey)
                     }
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(Color.stsElevated)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(Color.white.opacity(0.75))
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(Color.stsBorder, lineWidth: 1)
+                    .stroke(Color.zenPlumBorder, lineWidth: 1)
             )
             
             Spacer()
@@ -554,7 +599,7 @@ struct RecurringExpenseCalendarCard: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.zenInk)
                 }
                 
                 Button {
@@ -564,7 +609,7 @@ struct RecurringExpenseCalendarCard: View {
                 } label: {
                     Image(systemName: "calendar")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.zenCrimson)
                 }
                 
                 Button {
@@ -574,16 +619,16 @@ struct RecurringExpenseCalendarCard: View {
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.zenInk)
                 }
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(Color.stsElevated)
+            .padding(.vertical, 7)
+            .background(Color.white.opacity(0.75))
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(Color.stsBorder, lineWidth: 1)
+                    .stroke(Color.zenPlumBorder, lineWidth: 1)
             )
         }
     }
@@ -593,8 +638,8 @@ struct RecurringExpenseCalendarCard: View {
         HStack(spacing: 0) {
             ForEach(daysOfWeek, id: \.self) { day in
                 Text(day)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.stsSecondary)
+                    .font(.zenBody(12, weight: .semibold))
+                    .foregroundStyle(Color.zenPlumGrey)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -635,15 +680,13 @@ struct RecurringExpenseCalendarCard: View {
             if hasRecurring, let item = recurringOnDay.first {
                 // SQUIRCLE CARD WITH TOP-LEFT DATE BADGE & VIBRANT BRAND ICON
                 ZStack(alignment: .topLeading) {
-                    // Rounded Squircle Card
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.stsElevated)
+                        .fill(Color.white.opacity(0.75))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(Color.stsBorder, lineWidth: 1)
+                                .stroke(Color.zenPlumBorder, lineWidth: 1)
                         )
                         .overlay(
-                            // Centered Colorful Brand Icon Badge (size 28 with full brand colors)
                             RecurringBrandIconView(brandKey: item.brandKey, size: 28, showBackground: true)
                         )
                         .frame(maxWidth: .infinity)
@@ -651,35 +694,34 @@ struct RecurringExpenseCalendarCard: View {
                         .padding(.top, 2)
                         .padding(.leading, 2)
                     
-                    // Circular Date Badge in Top-Left Corner
                     Text("\(dayInfo.dayNumber)")
                         .font(.system(size: 9.5, weight: .heavy))
                         .foregroundStyle(.white)
                         .frame(width: 19, height: 19)
-                        .background(Color.stsAccent)
+                        .background(Color.zenCrimson)
                         .clipShape(Circle())
                         .overlay(
                             Circle()
-                                .stroke(Color.stsCardBackground, lineWidth: 1.5)
+                                .stroke(Color.white, lineWidth: 1.5)
                         )
-                        .shadow(color: Color.black.opacity(0.3), radius: 1, y: 1)
+                        .shadow(color: Color.zenInk.opacity(0.2), radius: 1, y: 1)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
             } else {
-                // Standard Date Text
                 Text("\(dayInfo.dayNumber)")
-                    .font(.system(size: 13, weight: isToday ? .bold : .medium))
+                    .font(.zenNumber(13, weight: isToday ? .bold : .medium))
                     .foregroundStyle(
-                        isToday ? .white :
-                        (dayInfo.isCurrentMonth ? Color.white.opacity(0.85) : Color.stsTertiary)
+                        isToday ? Color.zenCrimson :
+                        (dayInfo.isCurrentMonth ? Color.zenInk : Color.zenLavenderGrey)
                     )
                     .frame(maxWidth: .infinity)
                     .frame(height: 46)
                     .background(
                         isToday ?
                         Circle()
-                            .stroke(Color.stsAccent, lineWidth: 1.5)
+                            .fill(Color.zenCrimson.opacity(0.12))
+                            .overlay(Circle().stroke(Color.zenCrimson, lineWidth: 1.5))
                             .frame(width: 28, height: 28)
                         : nil
                     )

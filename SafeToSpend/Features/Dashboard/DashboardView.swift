@@ -9,16 +9,19 @@ struct DashboardView: View {
     @State private var showInsightsSheet = false
     @State private var showAddExpenseSheet = false
     @State private var isBreakdownExpanded = true
+    @State private var isCycleExpanded = true
+    @State private var isInsightsExpanded = true
     @State private var animateAmount = false
     @State private var showSettings = false
+    @State private var showZenShowcase = false
     
     var body: some View {
         ZStack {
             AppBackground()
+            AmbientPetalsView()
             
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 20) {
-                    headerBar
+                VStack(spacing: 18) {
                     heroCard
                     cycleProgressCard
                     breakdownCard
@@ -29,10 +32,34 @@ struct DashboardView: View {
                     Color.clear.frame(height: 80)
                 }
                 .padding(.horizontal, 16)
+                .padding(.top, 14)
             }
+            .clipped()
             .scrollBounceBehavior(.always, axes: .vertical)
             .refreshable {
                 await loadData()
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                headerBar
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
+                    .background(
+                        ZStack {
+                            Color.white.opacity(0.92)
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+                        }
+                        .ignoresSafeArea(edges: .top)
+                    )
+                    .overlay(alignment: .bottom) {
+                        LinearGradient(
+                            colors: [Color.zenPlumBorder.opacity(0.5), Color.clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 1)
+                    }
             }
         }
         .task {
@@ -59,14 +86,14 @@ struct DashboardView: View {
             SettingsView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .presentationBackground(Color.stsCardBackground)
+                .presentationBackground(Color.white.opacity(0.95))
         }
         .sheet(isPresented: $showInsightsSheet) {
             if let insights = insights {
                 InsightsDetailSheet(insights: insights)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
-                    .presentationBackground(Color.stsCardBackground)
+                    .presentationBackground(Color.white.opacity(0.95))
             }
         }
         .sheet(isPresented: $showAddExpenseSheet, onDismiss: {
@@ -78,26 +105,28 @@ struct DashboardView: View {
                 .environmentObject(appState)
                 .presentationDetents([.large, .medium])
                 .presentationDragIndicator(.visible)
-                .presentationBackground(Color.stsCardBackground)
+                .presentationBackground(Color.white.opacity(0.95))
+        }
+        .sheet(isPresented: $showZenShowcase) {
+            ZenShowcaseView()
         }
     }
     
     // MARK: - Header
     private var headerBar: some View {
         HStack(spacing: 12) {
-            Image("AppLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 32, height: 32)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Color.stsBorder, lineWidth: 1)
-                )
+            // Mascot Guide Chip: Ronin Ryo from the anime artwork
+            MascotAvatarView(mascot: .ryo, size: 38)
             
-            Text(currentDateString)
-                .font(.stsHeadline)
-                .foregroundStyle(.stsPrimary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("SafeToSpend")
+                    .font(.zenHeading(16, weight: .bold))
+                    .foregroundStyle(Color.zenInk)
+                
+                Text(currentDateString)
+                    .font(.zenBody(12))
+                    .foregroundStyle(Color.zenPlumGrey)
+            }
             
             Spacer()
             
@@ -105,18 +134,17 @@ struct DashboardView: View {
                 showSettings = true
             } label: {
                 Image(systemName: "gearshape.fill")
-                    .font(.title3)
-                    .foregroundStyle(.stsSecondary)
-                    .frame(width: 40, height: 40)
-                    .background(Color.stsCardBackground)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(Color.zenPlumGrey)
+                    .frame(width: 38, height: 38)
+                    .background(Color.white.opacity(0.8))
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(Color.stsBorder, lineWidth: 1)
+                            .stroke(Color.zenPlumBorder, lineWidth: 1)
                     )
             }
         }
-        .padding(.top, 8)
     }
     
     // MARK: - Computed Properties for Today's Expenses
@@ -140,171 +168,270 @@ struct DashboardView: View {
         VStack(spacing: 16) {
             // Header: Safe to Spend
             HStack {
-                Text("Safe to Spend")
-                    .font(.stsCaption)
-                    .foregroundStyle(.stsSecondary)
+                HStack(spacing: 6) {
+                    Image(systemName: "mountain.2.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.zenCrimson)
+                    
+                    Text("SAFE TO SPEND")
+                        .font(.system(size: 11, weight: .bold, design: .serif))
+                        .foregroundStyle(Color.zenPlumGrey)
+                        .tracking(0.8)
+                }
                 
                 Spacer()
+                
+                HankoSealStamp(kanji: "日", label: "TODAY", color: .zenCrimson)
             }
             
             if isLoading {
                 loadingPlaceholder
             } else if let data = todayData {
-                // Main hero amount
-                VStack(spacing: 4) {
-                    Text(data.stsPaise.toRupees)
-                        .font(.stsHeroAmount)
-                        .foregroundStyle(.stsPrimary)
-                        .contentTransition(.numericText())
-                        .scaleEffect(animateAmount ? 1.0 : 0.8)
-                        .opacity(animateAmount ? 1.0 : 0)
+                ZStack {
+                    // Soft ambient radiant aura behind the allowance amount
+                    RadialGradient(
+                        colors: [Color.zenCrimson.opacity(0.08), Color.zenGold.opacity(0.04), Color.clear],
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: 90
+                    )
+                    .frame(height: 100)
                     
-                    Text("safe allowance for today")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsTertiary)
+                    VStack(spacing: 4) {
+                        Text(data.stsPaise.toRupees)
+                            .font(.zenHeading(38, weight: .bold))
+                            .foregroundStyle(Color.zenInk)
+                            .contentTransition(.numericText())
+                            .scaleEffect(animateAmount ? 1.0 : 0.8)
+                            .opacity(animateAmount ? 1.0 : 0)
+                        
+                        Text("Safe Allowance for Today")
+                            .font(.zenBody(13, weight: .medium))
+                            .foregroundStyle(Color.zenPlumGrey)
+                    }
                 }
+                .padding(.vertical, 4)
+                
+                KatanaDivider()
                 
                 // Horizontal 3-metric summary
-                HStack(spacing: 24) {
-                    VStack(spacing: 4) {
+                HStack(spacing: 20) {
+                    VStack(spacing: 3) {
                         Text("per day")
-                            .font(.stsSmall)
-                            .foregroundStyle(.stsTertiary)
+                            .font(.zenBody(11))
+                            .foregroundStyle(Color.zenPlumGrey)
                         
                         Text(perDay(data))
-                            .font(.stsHeadline)
-                            .foregroundStyle(.stsAccent)
+                            .font(.zenNumber(16, weight: .bold))
+                            .foregroundStyle(Color.zenCrimson)
                     }
                     
-                    divider
+                    Divider().frame(height: 28).background(Color.zenPlumBorder)
                     
-                    VStack(spacing: 4) {
+                    VStack(spacing: 3) {
                         Text("days left")
-                            .font(.stsSmall)
-                            .foregroundStyle(.stsTertiary)
+                            .font(.zenBody(11))
+                            .foregroundStyle(Color.zenPlumGrey)
                         
                         Text("\(data.daysRemaining)")
-                            .font(.stsHeadline)
-                            .foregroundStyle(.stsPrimary)
+                            .font(.zenNumber(16, weight: .bold))
+                            .foregroundStyle(Color.zenInk)
                     }
                     
-                    divider
+                    Divider().frame(height: 28).background(Color.zenPlumBorder)
                     
-                    VStack(spacing: 4) {
+                    VStack(spacing: 3) {
                         Text("pool")
-                            .font(.stsSmall)
-                            .foregroundStyle(.stsTertiary)
+                            .font(.zenBody(11))
+                            .foregroundStyle(Color.zenPlumGrey)
                         
                         Text(data.poolPaise.toRupees)
-                            .font(.stsHeadline)
-                            .foregroundStyle(.stsPrimary)
+                            .font(.zenNumber(16, weight: .bold))
+                            .foregroundStyle(Color.zenJade)
                     }
                 }
             } else {
                 noDataView
             }
         }
-        .padding(20)
-        .background(Color.stsCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.stsBorder, lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.25), radius: 12, y: 4)
+        .glassCard(variant: .default, cornerRadius: 24)
     }
     
     // MARK: - Cycle Progress
     private var cycleProgressCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Cycle Progress")
-                .font(.stsCaption)
-                .foregroundStyle(.stsSecondary)
+            HStack {
+                Text("CYCLE PROGRESS")
+                    .font(.system(size: 11, weight: .bold, design: .serif))
+                    .foregroundStyle(Color.zenPlumGrey)
+                    .tracking(0.8)
+                
+                Spacer()
+                
+                if let data = todayData {
+                    Text("\(Int(cycleProgress(data) * 100))% THROUGH")
+                        .font(.system(size: 11, weight: .bold, design: .serif))
+                        .foregroundStyle(Color.zenJadeDark)
+                }
+                
+                Button {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                        isCycleExpanded.toggle()
+                        Haptics.impact(.medium)
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(isCycleExpanded ? "COLLAPSE" : "EXPAND")
+                            .font(.system(size: 10, weight: .bold, design: .serif))
+                        Image(systemName: isCycleExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(Color.zenJadeDark)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.zenJade.opacity(0.08))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color.zenJade.opacity(0.2), lineWidth: 1)
+                    )
+                }
+            }
             
             if let data = todayData {
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.stsElevated)
-                            .frame(height: 8)
+                if isCycleExpanded {
+                    DragonProgressBar(
+                        progress: cycleProgress(data),
+                        isWarning: cycleProgress(data) > 0.85
+                    )
+                    
+                    HStack {
+                        HStack(spacing: 4) {
+                            Image(systemName: "camera.macro")
+                                .font(.system(size: 11))
+                                .foregroundStyle(Color.zenBlossomDeep)
+                            Text("Active Budget Cycle")
+                                .font(.zenBody(12))
+                                .foregroundStyle(Color.zenPlumGrey)
+                        }
                         
-                        Capsule()
-                            .fill(Color.stsAccent)
-                            .frame(width: geo.size.width * cycleProgress(data), height: 8)
-                            .animation(.spring(response: 0.8), value: todayData)
+                        Spacer()
+                        
+                        Text("\(data.daysRemaining) days remaining")
+                            .font(.zenBody(12, weight: .bold))
+                            .foregroundStyle(Color.zenCrimson)
                     }
-                }
-                .frame(height: 8)
-                
-                HStack {
-                    Text("\(Int(cycleProgress(data) * 100))% through cycle")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsSecondary)
-                    
-                    Spacer()
-                    
-                    Text("\(data.daysRemaining) days remaining")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsAccent)
+                } else {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(Color.zenPlumBorder)
+                                .frame(height: 4)
+                            Capsule()
+                                .fill(Color.zenJade)
+                                .frame(width: max(0, min(geo.size.width, geo.size.width * cycleProgress(data))), height: 4)
+                        }
+                    }
+                    .frame(height: 4)
                 }
             }
         }
-        .cardStyle()
+        .glassCard(variant: .default, cornerRadius: 20)
+        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .highPriorityGesture(
+            TapGesture(count: 2).onEnded {
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                    isCycleExpanded.toggle()
+                    Haptics.impact(.medium)
+                }
+            }
+        )
     }
     
     // MARK: - Financial Breakdown
     private var breakdownCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Monthly Outlook")
-                .font(.stsHeadline)
-                .foregroundStyle(.stsPrimary)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                HStack(spacing: 8) {
+                    MascotAvatarView(mascot: .midori, size: 22, showGlow: false)
+                    
+                    Text("MONTHLY OUTLOOK")
+                        .font(.system(size: 11, weight: .bold, design: .serif))
+                        .foregroundStyle(Color.zenInk)
+                        .tracking(0.8)
+                }
+                
+                Spacer()
+                
+                Button {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                        isBreakdownExpanded.toggle()
+                        Haptics.impact(.medium)
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(isBreakdownExpanded ? "COLLAPSE" : "EXPAND")
+                            .font(.system(size: 10, weight: .bold, design: .serif))
+                        Image(systemName: isBreakdownExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(Color.zenCrimson)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.zenCrimson.opacity(0.08))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color.zenCrimson.opacity(0.2), lineWidth: 1)
+                    )
+                }
+            }
             
             if let data = todayData {
                 if isBreakdownExpanded {
-                    breakdownRow("Available Balance", value: data.availableBalancePaise, color: .stsPrimary)
-                    breakdownRow("Unpaid Bills", value: -data.unpaidCommitmentsPaise, color: .stsWarning)
-                    breakdownRow("Safety Buffer", value: -data.safetyBufferPaise, color: .stsTertiary)
-                    breakdownRow("Savings Reserve", value: -data.remainingSavingsReservePaise, color: .stsCyan)
+                    breakdownRow("Available Balance", value: data.availableBalancePaise, color: .zenInk)
+                    breakdownRow("Unpaid Bills", value: -data.unpaidCommitmentsPaise, color: .zenCrimson)
+                    breakdownRow("Safety Buffer", value: -data.safetyBufferPaise, color: .zenPlumGrey)
+                    breakdownRow("Savings Reserve", value: -data.remainingSavingsReservePaise, color: .zenJade)
                     
-                    Divider()
-                        .background(Color.stsBorder)
+                    KatanaDivider()
                 }
                 
-                breakdownRow("Spendable Pool", value: data.poolPaise, color: .stsAccent, bold: true)
+                breakdownRow("Spendable Pool", value: data.poolPaise, color: .zenJadeDark, bold: true)
                 
                 if data.shortfallPaise > 0 {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.stsDanger)
+                            .foregroundStyle(Color.zenCrimson)
                         
                         Text("Shortfall: \(data.shortfallPaise.toRupees)")
-                            .font(.stsCaption)
-                            .foregroundStyle(.stsDanger)
+                            .font(.zenBody(12, weight: .bold))
+                            .foregroundStyle(Color.zenCrimson)
                     }
                     .padding(8)
-                    .background(Color.stsDanger.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .background(Color.zenCrimson.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
         }
-        .cardStyle()
-        .contentShape(Rectangle())
-        .onTapGesture(count: 2) {
-            withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
-                isBreakdownExpanded.toggle()
-                Haptics.impact(.medium)
+        .glassCard(variant: .default, cornerRadius: 20)
+        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .highPriorityGesture(
+            TapGesture(count: 2).onEnded {
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                    isBreakdownExpanded.toggle()
+                    Haptics.impact(.medium)
+                }
             }
-        }
+        )
     }
     
     // MARK: - Quick Insights
     private var quickInsightsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Quick Insights")
-                    .font(.stsHeadline)
-                    .foregroundStyle(.stsPrimary)
+                Text("QUICK INSIGHTS")
+                    .font(.system(size: 11, weight: .bold, design: .serif))
+                    .foregroundStyle(Color.zenPlumGrey)
+                    .tracking(0.8)
                 
                 Spacer()
                 
@@ -313,8 +440,8 @@ struct DashboardView: View {
                         showInsightsSheet = true
                     } label: {
                         Text("See All")
-                            .font(.stsCaption)
-                            .foregroundStyle(.stsAccent)
+                            .font(.zenHeading(12, weight: .bold))
+                            .foregroundStyle(Color.zenCrimson)
                     }
                 }
             }
@@ -325,35 +452,34 @@ struct DashboardView: View {
                         icon: "flame.fill",
                         value: "\(insights.loggingStreakDays)",
                         label: "Day Streak",
-                        color: .stsWarning
+                        color: .zenGoldDeep
                     )
                     
                     insightTile(
                         icon: "cart.fill",
                         value: "\(insights.expensesCount)",
                         label: "Expenses",
-                        color: .stsCyan
+                        color: .zenSkyTop
                     )
                     
                     insightTile(
                         icon: "arrow.down.circle.fill",
                         value: insights.totalSpentPaise.toCompactRupees,
                         label: "Total Spent",
-                        color: .stsDanger
+                        color: .zenCrimson
                     )
                 }
             } else {
                 HStack(spacing: 12) {
                     ForEach(0..<3, id: \.self) { _ in
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.stsElevated)
+                            .fill(Color.white.opacity(0.6))
                             .frame(height: 80)
-                            .shimmer()
                     }
                 }
             }
         }
-        .cardStyle()
+        .glassCard(variant: .default, cornerRadius: 20)
     }
     
     // MARK: - Helpers
@@ -361,83 +487,90 @@ struct DashboardView: View {
     private func statusBadge(_ status: String) -> some View {
         HStack(spacing: 4) {
             Circle()
-                .fill(status == "ok" ? Color.stsAccent : Color.stsWarning)
+                .fill(status == "ok" ? Color.zenJade : Color.zenGoldDeep)
                 .frame(width: 6, height: 6)
             
             Text(status.capitalized)
-                .font(.stsSmall)
-                .foregroundStyle(status == "ok" ? .stsAccent : .stsWarning)
+                .font(.zenBody(11, weight: .semibold))
+                .foregroundStyle(status == "ok" ? Color.zenJade : Color.zenGoldDeep)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
-        .background((status == "ok" ? Color.stsAccent : Color.stsWarning).opacity(0.12))
+        .background((status == "ok" ? Color.zenJade : Color.zenGoldDeep).opacity(0.12))
         .clipShape(Capsule())
     }
     
     private var divider: some View {
         Rectangle()
-            .fill(Color.stsTertiary.opacity(0.3))
+            .fill(Color.zenPlumBorder)
             .frame(width: 1, height: 32)
     }
     
     private func breakdownRow(_ label: String, value: Int, color: Color, bold: Bool = false) -> some View {
         HStack {
             Text(label)
-                .font(bold ? .stsHeadline : .stsBody)
-                .foregroundStyle(bold ? color : .stsSecondary)
+                .font(bold ? .zenHeading(14, weight: .bold) : .zenBody(13))
+                .foregroundStyle(bold ? color : Color.zenPlumGrey)
             
             Spacer()
             
             Text(value.toRupees)
-                .font(bold ? .stsHeadline : .stsBody)
+                .font(bold ? .zenNumber(15, weight: .bold) : .zenNumber(13))
                 .foregroundStyle(color)
         }
     }
     
     private func insightTile(icon: String, value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(color)
             
             Text(value)
-                .font(.stsHeadline)
-                .foregroundStyle(.stsPrimary)
+                .font(.zenNumber(16, weight: .bold))
+                .foregroundStyle(Color.zenInk)
             
             Text(label)
-                .font(.stsSmall)
-                .foregroundStyle(.stsSecondary)
+                .font(.zenBody(11))
+                .foregroundStyle(Color.zenPlumGrey)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Color.stsElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Color.white.opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.white.opacity(0.9), lineWidth: 1)
+        )
     }
     
     private var loadingPlaceholder: some View {
         VStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.stsElevated)
+                .fill(Color.white.opacity(0.5))
                 .frame(width: 200, height: 48)
                 .shimmer()
             
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color.stsElevated)
+                .fill(Color.white.opacity(0.4))
                 .frame(width: 280, height: 20)
                 .shimmer()
         }
     }
     
     private var noDataView: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "exclamationmark.circle")
-                .font(.title)
-                .foregroundStyle(.stsWarning)
+        VStack(spacing: 10) {
+            MascotAvatarView(mascot: .ryo, size: 48)
             
-            Text("Could not load data")
-                .font(.stsBody)
-                .foregroundStyle(.stsSecondary)
+            Text("Connecting with Guardians...")
+                .font(.zenHeading(15, weight: .bold))
+                .foregroundStyle(Color.zenInk)
+            
+            Text("Pull down to refresh daily allowance")
+                .font(.zenBody(12))
+                .foregroundStyle(Color.zenPlumGrey)
         }
+        .padding(.vertical, 10)
     }
     
     private var greeting: String {
@@ -583,22 +716,6 @@ struct SettingsView: View {
                                 color: .stsDanger
                             )
                         }
-                        
-                        Color.clear.frame(height: 20)
-                        
-                        Image("AppLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 48, height: 48)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(Color.stsBorder, lineWidth: 1)
-                            )
-                        
-                        Text("SafeToSpend v1.0")
-                            .font(.stsSmall)
-                            .foregroundStyle(.stsTertiary)
                     }
                     .padding()
                 }

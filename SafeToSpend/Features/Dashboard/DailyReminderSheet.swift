@@ -103,11 +103,7 @@ struct DailyReminderSheet: View {
                                 .foregroundStyle(.stsSecondary)
                             
                             HStack(alignment: .top, spacing: 12) {
-                                Image("AppLogo")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                MascotAvatarView(mascot: .ryo, size: 36, showGlow: false)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {

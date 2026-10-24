@@ -16,13 +16,21 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            AppBackground()
+            AppBackground(
+                imageName: currentStep == 0 ? "bg_sakura_tree" : "bg_mountain_dawn",
+                opacity: currentStep == 0 ? 0.38 : 0.16,
+                showMist: currentStep != 0
+            )
+            AmbientPetalsView()
             
             VStack(spacing: 0) {
-                // Progress indicator
-                progressBar
-                    .padding(.top, 16)
-                    .padding(.horizontal, 24)
+                // Progress indicator (only on setup steps 1..3)
+                if currentStep > 0 {
+                    progressBar
+                        .padding(.top, 16)
+                        .padding(.horizontal, 24)
+                        .transition(.opacity)
+                }
                 
                 // Content
                 TabView(selection: $currentStep) {
@@ -52,49 +60,67 @@ struct OnboardingView: View {
         HStack(spacing: 8) {
             ForEach(0..<steps.count, id: \.self) { index in
                 Capsule()
-                    .fill(index <= currentStep ? Color.stsAccent : Color.stsTertiary.opacity(0.3))
-                    .frame(height: 4)
+                    .fill(
+                        index <= currentStep
+                            ? LinearGradient.zenCtaGradient
+                            : LinearGradient(colors: [Color.white.opacity(0.6), Color.white.opacity(0.4)], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .frame(height: 5)
+                    .overlay(
+                        Capsule()
+                            .stroke(index <= currentStep ? Color.zenGold.opacity(0.6) : Color.zenPlumBorder, lineWidth: 1)
+                    )
                     .animation(.spring(response: 0.3), value: currentStep)
             }
         }
     }
     
-    // MARK: - Steps
+    // MARK: - Step 0: Welcome Step (Landing Page)
     private var welcomeStep: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                Spacer(minLength: 40)
-                
-                // App logo
-                Image("AppLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .stroke(Color.stsBorder, lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.3), radius: 16, y: 6)
-                
-                VStack(spacing: 12) {
-                    Text("SafeToSpend")
-                        .font(.stsLargeTitle)
-                        .foregroundStyle(.stsPrimary)
+        VStack(spacing: 0) {
+            Spacer()
+            
+            VStack(spacing: 20) {
+                // Themed Shield Logo (Transparent background, Crimson Lacquer & Ambient Gold Aura)
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.zenGold.opacity(0.35), Color.zenBlossomPink.opacity(0.12), Color.clear],
+                                center: .center,
+                                startRadius: 10,
+                                endRadius: 75
+                            )
+                        )
+                        .frame(width: 150, height: 150)
                     
-                    Text("Know exactly how much you can\nspend today without breaking\nyour budget.")
-                        .font(.stsBody)
-                        .foregroundStyle(.stsSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
+                    Image("zen_shield_logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 110, height: 110)
+                        .shadow(color: Color.zenCrimson.opacity(0.35), radius: 14, y: 5)
                 }
                 
-                Spacer(minLength: 40)
+                // Enlarged Theme Heading (Serif Japanese Zen style)
+                Text("SafeToSpend")
+                    .font(.system(size: 48, weight: .bold, design: .serif))
+                    .foregroundStyle(Color.zenInk)
+                    .tracking(0.6)
+                    .shadow(color: Color.white.opacity(0.85), radius: 12, x: 0, y: 2)
+                
+                // Small concise description without any white box behind it
+                Text("Know exactly what is safe to spend today after your bills and savings are protected.")
+                    .font(.system(size: 15, weight: .medium, design: .default))
+                    .foregroundStyle(Color.zenPlumGrey)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 32)
+                    .shadow(color: Color.white.opacity(0.95), radius: 8, x: 0, y: 1)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 24)
+            
+            Spacer()
         }
-        .scrollBounceBehavior(.always, axes: .vertical)
+        .frame(maxWidth: .infinity)
     }
     
     private var balanceStep: some View {
@@ -286,11 +312,16 @@ struct OnboardingView: View {
                     withAnimation { currentStep -= 1 }
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.stsHeadline)
-                        .foregroundStyle(.stsSecondary)
-                        .frame(width: 56, height: 56)
-                        .background(Color.stsCardBackground)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color.zenInk)
+                        .frame(width: 52, height: 52)
+                        .background(Color.white.opacity(0.8))
                         .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Color.zenPlumBorder, lineWidth: 1)
+                        )
+                        .shadow(color: Color.zenInk.opacity(0.06), radius: 6, y: 3)
                 }
             }
             
@@ -309,18 +340,24 @@ struct OnboardingView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text(currentStep == steps.count - 1 ? "Let's Go" : "Next")
-                            .font(.stsHeadline)
+                        Text(currentStep == 0 ? "Begin Journey" : (currentStep == steps.count - 1 ? "Honor My Budget" : "Continue"))
+                            .font(.zenHeading(16, weight: .bold))
                         
-                        Image(systemName: currentStep == steps.count - 1 ? "checkmark" : "chevron.right")
+                        Image(systemName: currentStep == steps.count - 1 ? "checkmark" : "arrow.right")
+                            .font(.system(size: 14, weight: .bold))
                     }
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: currentStep == 0 ? .infinity : nil)
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
-                .background(Color.stsAccent)
-                .clipShape(Capsule())
+                .background(LinearGradient.zenCtaGradient)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(Color.zenGold.opacity(0.7), lineWidth: 1)
+                )
+                .shadow(color: Color.zenCrimson.opacity(0.35), radius: 10, y: 4)
             }
             .disabled(isSubmitting || (currentStep == 1 && balanceText.isEmpty))
             .opacity(isSubmitting || (currentStep == 1 && balanceText.isEmpty) ? 0.6 : 1)
