@@ -170,11 +170,16 @@ struct BillsView: View {
     
     private func billRow(_ bill: BillResponse) -> some View {
         HStack(spacing: 12) {
-            Text(bill.billIcon)
-                .font(.title2)
-                .frame(width: 44, height: 44)
+            Image(systemName: bill.billIcon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 40, height: 40)
                 .background(Color.stsElevated)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.stsBorder, lineWidth: 1)
+                )
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(bill.name)
@@ -210,9 +215,13 @@ struct BillsView: View {
                 }
             }
         }
-        .padding(12)
+        .padding(14)
         .background(Color.stsCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.stsBorder, lineWidth: 1)
+        )
         .contextMenu {
             if !bill.isPaid {
                 Button {
@@ -491,18 +500,14 @@ struct AddBillView: View {
                     .foregroundStyle(mode == m ? .white : .stsSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(
-                        mode == m ?
-                            AnyShapeStyle(LinearGradient(colors: [.stsAccent, .stsCyan], startPoint: .leading, endPoint: .trailing)) :
-                            AnyShapeStyle(Color.stsElevated)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .background(mode == m ? Color.stsAccent : Color.stsElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             }
         }
         .padding(4)
         .background(Color.stsElevated.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
     
     // MARK: - 1. Scan & OCR View
@@ -680,10 +685,8 @@ struct AddBillView: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(colors: [.stsAccent, .stsCyan], startPoint: .leading, endPoint: .trailing)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .background(Color.stsAccent)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .disabled(selectedCandidatesCount == 0 || isSubmitting)
                     .opacity(selectedCandidatesCount == 0 ? 0.6 : 1)
@@ -892,10 +895,8 @@ struct AddBillView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(
-                    LinearGradient(colors: [.stsAccent, .stsCyan], startPoint: .leading, endPoint: .trailing)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .background(Color.stsAccent)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .disabled(name.isEmpty || amount.isEmpty || isSubmitting)
             .opacity(name.isEmpty || amount.isEmpty ? 0.6 : 1)

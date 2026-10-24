@@ -8,7 +8,7 @@ struct DashboardView: View {
     @State private var isLoading = true
     @State private var showInsightsSheet = false
     @State private var showAddExpenseSheet = false
-    @State private var isHeroExpanded = false
+    @State private var isBreakdownExpanded = true
     @State private var animateAmount = false
     @State private var showSettings = false
     
@@ -57,7 +57,7 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
-                .presentationDetents([.medium])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Color.stsCardBackground)
         }
@@ -84,16 +84,20 @@ struct DashboardView: View {
     
     // MARK: - Header
     private var headerBar: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(greeting)
-                    .font(.stsCaption)
-                    .foregroundStyle(.stsSecondary)
-                
-                Text(currentDateString)
-                    .font(.stsHeadline)
-                    .foregroundStyle(.stsPrimary)
-            }
+        HStack(spacing: 12) {
+            Image("AppLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 32, height: 32)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Color.stsBorder, lineWidth: 1)
+                )
+            
+            Text(currentDateString)
+                .font(.stsHeadline)
+                .foregroundStyle(.stsPrimary)
             
             Spacer()
             
@@ -106,6 +110,10 @@ struct DashboardView: View {
                     .frame(width: 40, height: 40)
                     .background(Color.stsCardBackground)
                     .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.stsBorder, lineWidth: 1)
+                    )
             }
         }
         .padding(.top, 8)
@@ -127,52 +135,16 @@ struct DashboardView: View {
         todayExpenses.reduce(0) { $0 + $1.amountPaise }
     }
     
-    // MARK: - Hero STS Card (Expandable & Interactive)
+    // MARK: - Hero STS Card
     private var heroCard: some View {
         VStack(spacing: 16) {
-            // Header: Safe to Spend + Status Badge + Expand/Collapse Indicator
+            // Header: Safe to Spend
             HStack {
-                HStack(spacing: 6) {
-                    Text("Safe to Spend")
-                        .font(.stsCaption)
-                        .foregroundStyle(.stsSecondary)
-                    
-                    Image(systemName: "info.circle")
-                        .font(.caption)
-                        .foregroundStyle(.stsTertiary)
-                }
+                Text("Safe to Spend")
+                    .font(.stsCaption)
+                    .foregroundStyle(.stsSecondary)
                 
                 Spacer()
-                
-                HStack(spacing: 8) {
-                    if let data = todayData {
-                        statusBadge(data.status)
-                    }
-                    
-                    // Interactive Expand/Collapse Button
-                    Button {
-                        withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
-                            isHeroExpanded.toggle()
-                            Haptics.selection()
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(isHeroExpanded ? "Collapse" : "Details")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.stsCyan)
-                            
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.stsCyan)
-                                .rotationEffect(.degrees(isHeroExpanded ? 180 : 0))
-                        }
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4)
-                        .background(Color.stsCyan.opacity(0.12))
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
             }
             
             if isLoading {
@@ -228,323 +200,18 @@ struct DashboardView: View {
                             .foregroundStyle(.stsPrimary)
                     }
                 }
-                
-                // Collapsed Hint Pill
-                if !isHeroExpanded {
-                    Button {
-                        withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
-                            isHeroExpanded = true
-                            Haptics.selection()
-                        }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "sparkles")
-                                .font(.caption2)
-                                .foregroundStyle(.stsCyan)
-                            
-                            Text(todayExpenses.isEmpty ? "Tap to view today's budget breakdown" : "Tap to view \(todayExpenses.count) expense\(todayExpenses.count == 1 ? "" : "s") logged today")
-                                .font(.stsSmall)
-                                .foregroundStyle(.stsCyan)
-                            
-                            Image(systemName: "chevron.down")
-                                .font(.caption2)
-                                .foregroundStyle(.stsCyan)
-                        }
-                        .padding(.top, 2)
-                    }
-                    .buttonStyle(.plain)
-                }
-                
-                // Expanded Details Section
-                if isHeroExpanded {
-                    heroExpandedDetails(data)
-                        .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
-                }
             } else {
                 noDataView
             }
         }
         .padding(20)
-        .background(
+        .background(Color.stsCardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.stsCardBackground)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    isHeroExpanded ? .stsCyan.opacity(0.4) : .stsAccent.opacity(0.3),
-                                    .clear,
-                                    isHeroExpanded ? .stsAccent.opacity(0.3) : .stsCyan.opacity(0.15)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: isHeroExpanded ? 1.5 : 1
-                        )
-                )
+                .stroke(Color.stsBorder, lineWidth: 1)
         )
-        .shadow(color: (isHeroExpanded ? Color.stsCyan : Color.stsAccent).opacity(isHeroExpanded ? 0.16 : 0.08), radius: 24, y: 8)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
-                isHeroExpanded.toggle()
-                Haptics.selection()
-            }
-        }
-    }
-    
-    // MARK: - Expanded Details Component
-    private func heroExpandedDetails(_ data: TodayResponse) -> some View {
-        VStack(spacing: 16) {
-            // Gradient Divider
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [.clear, .stsAccent.opacity(0.4), .stsCyan.opacity(0.4), .clear],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(height: 1)
-                .padding(.vertical, 4)
-            
-            // 1. Today's Budget Status & Progress Meter
-            todayBudgetStatusView(data)
-            
-            // 2. Today's Expenses List
-            todayExpensesListView
-            
-            // 3. Today's Calculation Formula
-            todayFormulaBreakdownView(data)
-            
-            // 4. Quick Add Button
-            Button {
-                showAddExpenseSheet = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.body)
-                    Text("Add Expense for Today")
-                        .font(.stsHeadline)
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(
-                    LinearGradient(
-                        colors: [.stsAccent, .stsCyan],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .stsAccent.opacity(0.3), radius: 8, y: 3)
-            }
-            .padding(.top, 2)
-            
-            // Collapse Button
-            Button {
-                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
-                    isHeroExpanded = false
-                    Haptics.selection()
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text("Collapse Details")
-                        .font(.stsSmall)
-                    Image(systemName: "chevron.up")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.stsTertiary)
-                .padding(.vertical, 4)
-            }
-        }
-    }
-    
-    // MARK: - Subcomponent: Today Budget Status
-    private func todayBudgetStatusView(_ data: TodayResponse) -> some View {
-        let isWithinBudget = todaySpentPaise <= data.stsPaise
-        let differencePaise = abs(data.stsPaise - todaySpentPaise)
-        let ratio: CGFloat = data.stsPaise > 0 ? CGFloat(todaySpentPaise) / CGFloat(data.stsPaise) : 0
-        
-        return VStack(spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Today's Spend Tracker")
-                        .font(.stsCaption)
-                        .foregroundStyle(.stsSecondary)
-                    
-                    Text(todaySpentPaise == 0 ? "₹0.00 spent today" : "\(todaySpentPaise.toRupees) spent")
-                        .font(.stsHeadline)
-                        .foregroundStyle(todaySpentPaise > 0 ? (isWithinBudget ? .stsPrimary : .stsWarning) : .stsSecondary)
-                }
-                
-                Spacer()
-                
-                // Status indicator pill
-                HStack(spacing: 4) {
-                    Image(systemName: isWithinBudget ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .font(.caption2)
-                    
-                    Text(isWithinBudget ? "\(differencePaise.toRupees) left" : "\(differencePaise.toRupees) over")
-                        .font(.system(size: 11, weight: .bold))
-                }
-                .foregroundStyle(isWithinBudget ? .stsAccent : .stsWarning)
-                .padding(.horizontal, 9)
-                .padding(.vertical, 4)
-                .background((isWithinBudget ? Color.stsAccent : Color.stsWarning).opacity(0.12))
-                .clipShape(Capsule())
-            }
-            
-            // Progress Bar of Today's Allowance
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.stsElevated)
-                        .frame(height: 6)
-                    
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: isWithinBudget ? [.stsAccent, .stsCyan] : [.stsWarning, .red],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: max(0, min(geo.size.width * min(ratio, 1.0), geo.size.width)), height: 6)
-                }
-            }
-            .frame(height: 6)
-        }
-        .padding(12)
-        .background(Color.stsElevated.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-    
-    // MARK: - Subcomponent: Today's Expenses List
-    private var todayExpensesListView: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Today's Expenses")
-                    .font(.stsCaption)
-                    .foregroundStyle(.stsSecondary)
-                
-                Spacer()
-                
-                Text("\(todayExpenses.count) logged")
-                    .font(.stsSmall)
-                    .foregroundStyle(.stsTertiary)
-            }
-            
-            if todayExpenses.isEmpty {
-                HStack(spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.title3)
-                        .foregroundStyle(.stsCyan)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("No expenses logged today")
-                            .font(.stsBody)
-                            .foregroundStyle(.stsPrimary)
-                        
-                        Text("Your daily safe-to-spend allowance is completely intact.")
-                            .font(.stsSmall)
-                            .foregroundStyle(.stsSecondary)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(12)
-                .background(Color.stsElevated.opacity(0.4))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(todayExpenses) { exp in
-                        HStack(spacing: 10) {
-                            Text(exp.categoryIcon)
-                                .font(.title3)
-                                .frame(width: 34, height: 34)
-                                .background(Color.stsElevated)
-                                .clipShape(Circle())
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(exp.displayTitle)
-                                    .font(.stsBody)
-                                    .foregroundStyle(.stsPrimary)
-                                    .lineLimit(1)
-                                
-                                Text(exp.category.capitalized)
-                                    .font(.stsSmall)
-                                    .foregroundStyle(.stsTertiary)
-                            }
-                            
-                            Spacer()
-                            
-                            Text(exp.amountPaise.toRupees)
-                                .font(.stsHeadline)
-                                .foregroundStyle(.stsPrimary)
-                        }
-                        .padding(10)
-                        .background(Color.stsElevated.opacity(0.5))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Subcomponent: Today's Formula Breakdown
-    private func todayFormulaBreakdownView(_ data: TodayResponse) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "function")
-                    .font(.caption)
-                    .foregroundStyle(.stsAccent)
-                
-                Text("How Today's Safe-to-Spend Works")
-                    .font(.stsCaption)
-                    .foregroundStyle(.stsSecondary)
-            }
-            
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("Spendable Pool:")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsTertiary)
-                    Spacer()
-                    Text(data.poolPaise.toRupees)
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsPrimary)
-                }
-                
-                HStack {
-                    Text("Days Remaining:")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsTertiary)
-                    Spacer()
-                    Text("\(data.daysRemaining) days")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsPrimary)
-                }
-                
-                Divider()
-                    .background(Color.white.opacity(0.08))
-                
-                HStack {
-                    Text("Daily Formula:")
-                        .font(.stsSmall)
-                        .foregroundStyle(.stsAccent)
-                    Spacer()
-                    Text("\(data.poolPaise.toRupees) ÷ \(data.daysRemaining) = \(data.stsPaise.toRupees)/day")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.stsAccent)
-                }
-            }
-            .padding(12)
-            .background(Color.stsElevated.opacity(0.4))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
+        .shadow(color: Color.black.opacity(0.25), radius: 12, y: 4)
     }
     
     // MARK: - Cycle Progress
@@ -563,13 +230,7 @@ struct DashboardView: View {
                             .frame(height: 8)
                         
                         Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.stsAccent, .stsCyan],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .fill(Color.stsAccent)
                             .frame(width: geo.size.width * cycleProgress(data), height: 8)
                             .animation(.spring(response: 0.8), value: todayData)
                     }
@@ -600,13 +261,15 @@ struct DashboardView: View {
                 .foregroundStyle(.stsPrimary)
             
             if let data = todayData {
-                breakdownRow("Available Balance", value: data.availableBalancePaise, color: .stsPrimary)
-                breakdownRow("Unpaid Bills", value: -data.unpaidCommitmentsPaise, color: .stsWarning)
-                breakdownRow("Safety Buffer", value: -data.safetyBufferPaise, color: .stsTertiary)
-                breakdownRow("Savings Reserve", value: -data.remainingSavingsReservePaise, color: .stsCyan)
-                
-                Divider()
-                    .background(Color.stsTertiary.opacity(0.3))
+                if isBreakdownExpanded {
+                    breakdownRow("Available Balance", value: data.availableBalancePaise, color: .stsPrimary)
+                    breakdownRow("Unpaid Bills", value: -data.unpaidCommitmentsPaise, color: .stsWarning)
+                    breakdownRow("Safety Buffer", value: -data.safetyBufferPaise, color: .stsTertiary)
+                    breakdownRow("Savings Reserve", value: -data.remainingSavingsReservePaise, color: .stsCyan)
+                    
+                    Divider()
+                        .background(Color.stsBorder)
+                }
                 
                 breakdownRow("Spendable Pool", value: data.poolPaise, color: .stsAccent, bold: true)
                 
@@ -626,6 +289,13 @@ struct DashboardView: View {
             }
         }
         .cardStyle()
+        .contentShape(Rectangle())
+        .onTapGesture(count: 2) {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                isBreakdownExpanded.toggle()
+                Haptics.impact(.medium)
+            }
+        }
     }
     
     // MARK: - Quick Insights
@@ -773,10 +443,10 @@ struct DashboardView: View {
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 5..<12: return "Good Morning 🌅"
-        case 12..<17: return "Good Afternoon ☀️"
-        case 17..<21: return "Good Evening 🌆"
-        default: return "Good Night 🌙"
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        case 17..<21: return "Good evening"
+        default: return "Good evening"
         }
     }
     
@@ -846,30 +516,85 @@ struct SettingsView: View {
     @State private var showResetConfirm = false
     @State private var isResetting = false
     
+    @State private var showExportSheet = false
+    @State private var showReminderSheet = false
+    @State private var showPrivacySheet = false
+    
+    @AppStorage("dailyReminderEnabled") private var isDailyReminderEnabled = false
+    @AppStorage("dailyReminderHour") private var dailyReminderHour = 21
+    @AppStorage("dailyReminderMinute") private var dailyReminderMinute = 0
+    @AppStorage("biometricLockEnabled") private var isBiometricLockEnabled = false
+    
+    private var reminderStatusSubtitle: String {
+        if isDailyReminderEnabled {
+            let comp = DateComponents(hour: dailyReminderHour, minute: dailyReminderMinute)
+            let date = Calendar.current.date(from: comp) ?? Date()
+            let f = DateFormatter()
+            f.dateFormat = "h:mm a"
+            return "Active at \(f.string(from: date))"
+        } else {
+            return "Disabled"
+        }
+    }
+    
+    @State private var navigationPath = NavigationPath()
+    
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 Color.stsCardBackground.ignoresSafeArea()
                 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 16) {
-                        settingsRow(icon: "arrow.triangle.2.circlepath", title: "Reset All Data", color: .stsDanger) {
+                        NavigationLink(value: "export") {
+                            settingsRowContent(
+                                icon: "square.and.arrow.up",
+                                title: "Export Data",
+                                subtitle: "CSV spreadsheet, JSON backup",
+                                color: .stsCyan
+                            )
+                        }
+                        
+                        NavigationLink(value: "reminders") {
+                            settingsRowContent(
+                                icon: "bell.fill",
+                                title: "Daily Reminders",
+                                subtitle: reminderStatusSubtitle,
+                                color: .stsAccent
+                            )
+                        }
+                        
+                        NavigationLink(value: "privacy") {
+                            settingsRowContent(
+                                icon: "lock.shield.fill",
+                                title: "Privacy & Security",
+                                subtitle: isBiometricLockEnabled ? "Biometric Protection Active" : "On-device processing",
+                                color: .stsSecondary
+                            )
+                        }
+                        
+                        Button {
                             showResetConfirm = true
-                        }
-                        
-                        settingsRow(icon: "square.and.arrow.up", title: "Export Data", color: .stsCyan) {
-                            // Export functionality
-                        }
-                        
-                        settingsRow(icon: "bell.fill", title: "Daily Reminders", color: .stsAccent) {
-                            // Notifications
-                        }
-                        
-                        settingsRow(icon: "lock.shield.fill", title: "Privacy & Security", color: .stsSecondary) {
-                            // Privacy
+                        } label: {
+                            settingsRowContent(
+                                icon: "arrow.triangle.2.circlepath",
+                                title: "Reset All Data",
+                                subtitle: "Clear all local & cloud financial data",
+                                color: .stsDanger
+                            )
                         }
                         
                         Color.clear.frame(height: 20)
+                        
+                        Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.stsBorder, lineWidth: 1)
+                            )
                         
                         Text("SafeToSpend v1.0")
                             .font(.stsSmall)
@@ -885,6 +610,18 @@ struct SettingsView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                         .foregroundStyle(.stsAccent)
+                }
+            }
+            .navigationDestination(for: String.self) { destination in
+                switch destination {
+                case "export":
+                    ExportDataSheet()
+                case "reminders":
+                    DailyReminderSheet()
+                case "privacy":
+                    PrivacySecuritySheet()
+                default:
+                    EmptyView()
                 }
             }
         }
@@ -904,30 +641,41 @@ struct SettingsView: View {
         }
     }
     
-    private func settingsRow(icon: String, title: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.body)
-                    .foregroundStyle(color)
-                    .frame(width: 32, height: 32)
-                    .background(color.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                
+    private func settingsRowContent(icon: String, title: String, subtitle: String? = nil, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.body)
+                .foregroundStyle(color)
+                .frame(width: 36, height: 36)
+                .background(color.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.stsBody)
+                    .fontWeight(.medium)
                     .foregroundStyle(.stsPrimary)
                 
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.stsTertiary)
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.stsSmall)
+                        .foregroundStyle(.stsTertiary)
+                }
             }
-            .padding(12)
-            .background(Color.stsElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.stsTertiary)
         }
+        .padding(14)
+        .background(Color.stsElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.stsBorder, lineWidth: 1)
+        )
     }
 }
 

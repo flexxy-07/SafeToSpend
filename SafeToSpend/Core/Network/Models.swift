@@ -151,17 +151,17 @@ struct ExpenseResponse: Codable, Identifiable {
     
     var categoryIcon: String {
         switch category.lowercased() {
-        case "food", "dining": return "🍽️"
-        case "transport", "transportation": return "🚗"
-        case "shopping": return "🛍️"
-        case "entertainment": return "🎬"
-        case "health", "medical": return "🏥"
-        case "utilities": return "⚡"
-        case "groceries": return "🛒"
-        case "education": return "📚"
-        case "travel": return "✈️"
-        case "subscription": return "🔄"
-        default: return "💸"
+        case "food", "dining": return "fork.knife"
+        case "transport", "transportation": return "car.fill"
+        case "shopping": return "bag.fill"
+        case "entertainment": return "film.fill"
+        case "health", "medical": return "cross.fill"
+        case "utilities": return "bolt.fill"
+        case "groceries": return "cart.fill"
+        case "education": return "book.fill"
+        case "travel": return "airplane"
+        case "subscription": return "arrow.triangle.2.circlepath"
+        default: return "creditcard.fill"
         }
     }
 }
@@ -192,15 +192,15 @@ struct BillResponse: Codable, Identifiable {
     
     var billIcon: String {
         switch name.lowercased() {
-        case let n where n.contains("rent"): return "🏠"
-        case let n where n.contains("electric") || n.contains("power"): return "⚡"
-        case let n where n.contains("water"): return "💧"
-        case let n where n.contains("internet") || n.contains("wifi"): return "📡"
-        case let n where n.contains("phone") || n.contains("mobile"): return "📱"
-        case let n where n.contains("insurance"): return "🛡️"
-        case let n where n.contains("netflix") || n.contains("streaming"): return "📺"
-        case let n where n.contains("gym") || n.contains("fitness"): return "💪"
-        default: return "📄"
+        case let n where n.contains("rent"): return "house.fill"
+        case let n where n.contains("electric") || n.contains("power"): return "bolt.fill"
+        case let n where n.contains("water"): return "drop.fill"
+        case let n where n.contains("internet") || n.contains("wifi"): return "wifi"
+        case let n where n.contains("phone") || n.contains("mobile"): return "iphone"
+        case let n where n.contains("insurance"): return "shield.fill"
+        case let n where n.contains("netflix") || n.contains("streaming"): return "tv.fill"
+        case let n where n.contains("gym") || n.contains("fitness"): return "figure.run"
+        default: return "doc.text.fill"
         }
     }
 }

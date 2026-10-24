@@ -65,23 +65,17 @@ struct OnboardingView: View {
             VStack(spacing: 24) {
                 Spacer(minLength: 40)
                 
-                // App icon placeholder
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.stsAccent, .stsCyan],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 100, height: 100)
-                    
-                    Image(systemName: "indianrupeesign.circle.fill")
-                        .font(.system(size: 50))
-                        .foregroundStyle(.white)
-                }
-                .shadow(color: .stsAccent.opacity(0.4), radius: 20)
+                // App logo
+                Image("AppLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .stroke(Color.stsBorder, lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.3), radius: 16, y: 6)
                 
                 VStack(spacing: 12) {
                     Text("SafeToSpend")
@@ -325,15 +319,8 @@ struct OnboardingView: View {
                 .frame(maxWidth: currentStep == 0 ? .infinity : nil)
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
-                .background(
-                    LinearGradient(
-                        colors: [.stsAccent, .stsCyan],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .background(Color.stsAccent)
                 .clipShape(Capsule())
-                .shadow(color: .stsAccent.opacity(0.3), radius: 12, y: 4)
             }
             .disabled(isSubmitting || (currentStep == 1 && balanceText.isEmpty))
             .opacity(isSubmitting || (currentStep == 1 && balanceText.isEmpty) ? 0.6 : 1)

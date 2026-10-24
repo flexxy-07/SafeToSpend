@@ -3,49 +3,53 @@ import SwiftUI
 // MARK: - ShapeStyle convenience (so .foregroundStyle(.stsAccent) works)
 extension ShapeStyle where Self == Color {
     // Backgrounds
-    static var stsBackground: Color { Color(hex: "0A0E1A") }
-    static var stsCardBackground: Color { Color(hex: "131B2E") }
-    static var stsCardBackgroundLight: Color { Color(hex: "1A2540") }
-    static var stsElevated: Color { Color(hex: "1E2A45") }
+    static var stsBackground: Color { Color(hex: "090A0E") }
+    static var stsCardBackground: Color { Color(hex: "13141C") }
+    static var stsCardBackgroundLight: Color { Color(hex: "181926") }
+    static var stsElevated: Color { Color(hex: "1D1F2C") }
+    static var stsBorder: Color { Color(hex: "242636") }
     
     // Accents
-    static var stsAccent: Color { Color(hex: "00D09C") }
-    static var stsCyan: Color { Color(hex: "00BCD4") }
-    static var stsWarning: Color { Color(hex: "FFB74D") }
-    static var stsDanger: Color { Color(hex: "FF5252") }
-    static var stsGold: Color { Color(hex: "FFD700") }
+    static var stsAccent: Color { Color(hex: "504CF5") }       // Electric Royal Indigo
+    static var stsCyan: Color { Color(hex: "7876FF") }         // Cool Periwinkle
+    static var stsWarning: Color { Color(hex: "F59E0B") }      // Warm Amber
+    static var stsDanger: Color { Color(hex: "EF4444") }       // Crisp Crimson
+    static var stsGold: Color { Color(hex: "FBBF24") }         // Refined Gold
+    static var stsSuccess: Color { Color(hex: "10B981") }      // Emerald
     
     // Text
     static var stsPrimary: Color { .white }
-    static var stsSecondary: Color { Color(hex: "8B99AE") }
-    static var stsTertiary: Color { Color(hex: "5A6578") }
+    static var stsSecondary: Color { Color(hex: "9092A0") }
+    static var stsTertiary: Color { Color(hex: "5A5D70") }
 }
 
 // MARK: - Color Palette
-/// Design system inspired by the premium dark finance app aesthetic
+/// Design system inspired by the premium Fintech Digital website aesthetic
 extension Color {
     // Backgrounds
-    static let stsBackground = Color(hex: "0A0E1A")
-    static let stsCardBackground = Color(hex: "131B2E")
-    static let stsCardBackgroundLight = Color(hex: "1A2540")
-    static let stsElevated = Color(hex: "1E2A45")
+    static let stsBackground = Color(hex: "090A0E")
+    static let stsCardBackground = Color(hex: "13141C")
+    static let stsCardBackgroundLight = Color(hex: "181926")
+    static let stsElevated = Color(hex: "1D1F2C")
+    static let stsBorder = Color(hex: "242636")
     
     // Accents
-    static let stsAccent = Color(hex: "00D09C")       // Teal/green primary
-    static let stsAccentDim = Color(hex: "00D09C").opacity(0.15)
-    static let stsCyan = Color(hex: "00BCD4")          // Progress bars
-    static let stsWarning = Color(hex: "FFB74D")       // Orange warning
-    static let stsDanger = Color(hex: "FF5252")        // Red danger
-    static let stsGold = Color(hex: "FFD700")          // Gold highlights
+    static let stsAccent = Color(hex: "504CF5")       // Electric Royal Indigo primary
+    static let stsAccentDim = Color(hex: "504CF5").opacity(0.15)
+    static let stsCyan = Color(hex: "7876FF")          // Cool Periwinkle secondary
+    static let stsWarning = Color(hex: "F59E0B")       // Amber warning
+    static let stsDanger = Color(hex: "EF4444")        // Red danger
+    static let stsGold = Color(hex: "FBBF24")          // Gold highlights
+    static let stsSuccess = Color(hex: "10B981")       // Clean emerald
     
     // Text
     static let stsPrimary = Color.white
-    static let stsSecondary = Color(hex: "8B99AE")
-    static let stsTertiary = Color(hex: "5A6578")
+    static let stsSecondary = Color(hex: "9092A0")
+    static let stsTertiary = Color(hex: "5A5D70")
     
-    // Gradients
-    static let stsGradientStart = Color(hex: "0A0E1A")
-    static let stsGradientEnd = Color(hex: "1A0A2E")
+    // Gradients (Clean subtle fallback)
+    static let stsGradientStart = Color(hex: "090A0E")
+    static let stsGradientEnd = Color(hex: "090A0E")
     
     // Helpers
     init(hex: String) {
@@ -71,54 +75,55 @@ extension Color {
     }
 }
 
-// MARK: - Background Gradient
+// MARK: - App Background (Solid Matte Obsidian)
 struct AppBackground: View {
     var body: some View {
-        LinearGradient(
-            colors: [.stsGradientStart, .stsGradientEnd, .stsGradientStart],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
+        Color.stsBackground
+            .ignoresSafeArea()
     }
 }
 
 // MARK: - Card Modifier
 struct CardStyle: ViewModifier {
     var padding: CGFloat = 16
-    var cornerRadius: CGFloat = 16
+    var cornerRadius: CGFloat = 18
     
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .background(Color.stsCardBackground)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-    }
-}
-
-extension View {
-    func cardStyle(padding: CGFloat = 16, cornerRadius: CGFloat = 16) -> some View {
-        modifier(CardStyle(padding: padding, cornerRadius: cornerRadius))
-    }
-}
-
-// MARK: - Glassmorphism Card
-struct GlassCard: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .background(.ultraThinMaterial.opacity(0.4))
-            .background(Color.stsCardBackground.opacity(0.6))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.stsBorder, lineWidth: 1)
             )
     }
 }
 
 extension View {
-    func glassCard() -> some View {
-        modifier(GlassCard())
+    func cardStyle(padding: CGFloat = 16, cornerRadius: CGFloat = 18) -> some View {
+        modifier(CardStyle(padding: padding, cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - Glassmorphism Card (Refined Solid Matte Card with Crisp Outline)
+struct GlassCard: ViewModifier {
+    var cornerRadius: CGFloat = 18
+    
+    func body(content: Content) -> some View {
+        content
+            .background(Color.stsCardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.stsBorder, lineWidth: 1)
+            )
+    }
+}
+
+extension View {
+    func glassCard(cornerRadius: CGFloat = 18) -> some View {
+        modifier(GlassCard(cornerRadius: cornerRadius))
     }
 }
 

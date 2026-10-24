@@ -97,6 +97,10 @@ struct ExpenseListView: View {
                             .padding(.vertical, 7)
                             .background(selectedCategory == cat ? Color.stsAccent : Color.stsCardBackground)
                             .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .stroke(selectedCategory == cat ? Color.clear : Color.stsBorder, lineWidth: 1)
+                            )
                     }
                 }
             }
@@ -149,12 +153,17 @@ struct ExpenseListView: View {
     
     private func expenseRow(_ expense: ExpenseResponse) -> some View {
         HStack(spacing: 12) {
-            // Category icon
-            Text(expense.categoryIcon)
-                .font(.title2)
-                .frame(width: 44, height: 44)
+            // Category icon (SF Symbol)
+            Image(systemName: expense.categoryIcon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 40, height: 40)
                 .background(Color.stsElevated)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.stsBorder, lineWidth: 1)
+                )
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(expense.displayTitle)
@@ -165,7 +174,7 @@ struct ExpenseListView: View {
                 HStack(spacing: 6) {
                     Text(expense.category.capitalized)
                         .font(.stsSmall)
-                        .foregroundStyle(.stsAccent)
+                        .foregroundStyle(.stsCyan)
                     
                     if let merchant = expense.merchant {
                         Text("• \(merchant)")
@@ -182,9 +191,13 @@ struct ExpenseListView: View {
                 .foregroundStyle(expense.status == "voided" ? .stsTertiary : .stsPrimary)
                 .strikethrough(expense.status == "voided")
         }
-        .padding(12)
+        .padding(14)
         .background(Color.stsCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.stsBorder, lineWidth: 1)
+        )
         .contextMenu {
             if expense.status != "voided" {
                 Button(role: .destructive) {

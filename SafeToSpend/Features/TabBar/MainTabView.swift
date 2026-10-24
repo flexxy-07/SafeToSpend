@@ -53,15 +53,9 @@ struct MainTabView: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.stsAccent, .stsCyan],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .fill(Color.stsAccent)
                         .frame(width: 56, height: 56)
-                        .shadow(color: .stsAccent.opacity(0.4), radius: 12, y: 4)
+                        .shadow(color: Color.stsAccent.opacity(0.35), radius: 10, y: 4)
                     
                     Image(systemName: "plus")
                         .font(.system(size: 24, weight: .semibold))
@@ -81,7 +75,7 @@ struct MainTabView: View {
             Color.stsCardBackground
                 .overlay(
                     Rectangle()
-                        .fill(Color.white.opacity(0.04))
+                        .fill(Color.stsBorder)
                         .frame(height: 1),
                     alignment: .top
                 )

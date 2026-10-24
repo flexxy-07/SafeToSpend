@@ -138,9 +138,7 @@ struct ChatView: View {
         VStack(spacing: 12) {
             Image(systemName: "sparkles")
                 .font(.system(size: 36))
-                .foregroundStyle(
-                    LinearGradient(colors: [.stsAccent, .stsCyan], startPoint: .topLeading, endPoint: .bottomTrailing)
-                )
+                .foregroundStyle(Color.stsAccent)
             
             Text("Ask Safe anything")
                 .font(.stsTitle)
@@ -387,7 +385,7 @@ struct ChatView: View {
     private func getRescuePlan() async {
         isThinking = true
         
-        let userMessage = ChatMessage(text: "🆘 Generate a rescue plan for me", isUser: true)
+        let userMessage = ChatMessage(text: "Generate a rescue plan for me", isUser: true)
         messages.append(userMessage)
         
         do {

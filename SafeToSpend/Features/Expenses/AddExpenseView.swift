@@ -140,18 +140,14 @@ struct AddExpenseView: View {
                     .foregroundStyle(mode == m ? .white : .stsSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(
-                        mode == m ?
-                            AnyShapeStyle(LinearGradient(colors: [.stsAccent, .stsCyan], startPoint: .leading, endPoint: .trailing)) :
-                            AnyShapeStyle(Color.stsElevated)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .background(mode == m ? Color.stsAccent : Color.stsElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             }
         }
         .padding(4)
         .background(Color.stsElevated.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
     
     // MARK: - 1. Smart Entry
@@ -605,7 +601,8 @@ struct AddExpenseView: View {
             
             if let category = preview.candidateCategory {
                 HStack(spacing: 6) {
-                    Text(categoryIcon(category))
+                    Image(systemName: categoryIcon(category))
+                        .font(.system(size: 12, weight: .semibold))
                     Text(category.capitalized)
                         .font(.stsCaption)
                         .foregroundStyle(.stsAccent)
@@ -655,15 +652,8 @@ struct AddExpenseView: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(
-                LinearGradient(
-                    colors: [.stsAccent, .stsCyan],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: .stsAccent.opacity(0.3), radius: 12, y: 4)
+            .background(Color.stsAccent)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .disabled(isBusy)
     }
@@ -921,14 +911,14 @@ struct AddExpenseView: View {
     
     private func categoryIcon(_ category: String) -> String {
         switch category.lowercased() {
-        case "food", "dining": return "🍽️"
-        case "transport": return "🚗"
-        case "shopping": return "🛍️"
-        case "entertainment": return "🎬"
-        case "health": return "🏥"
-        case "utilities": return "⚡"
-        case "groceries": return "🛒"
-        default: return "💸"
+        case "food", "dining": return "fork.knife"
+        case "transport": return "car.fill"
+        case "shopping": return "bag.fill"
+        case "entertainment": return "film.fill"
+        case "health": return "cross.fill"
+        case "utilities": return "bolt.fill"
+        case "groceries": return "cart.fill"
+        default: return "creditcard.fill"
         }
     }
 }

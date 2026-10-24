@@ -424,7 +424,7 @@ struct RecurringExpenseCalendarCard: View {
             // 1. Header: (↻) RECURRING PAYMENTS  +
             topHeaderView
             
-            // 2. Navigation Pills: [ Jan ▾ | 23 ▾ ]    [ < | 🗓️ | > ]
+            // 2. Navigation Pills: [ Jan ▾ | 23 ▾ ]    [ < | cal | > ]
             navigationPillsView
             
             // 3. Days of Week: Su  Mo  Tu  We  Th  Fr  Sa
@@ -434,11 +434,11 @@ struct RecurringExpenseCalendarCard: View {
             calendarGridView
         }
         .padding(18)
-        .background(Color(hex: "182136"))
+        .background(Color.stsCardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                .stroke(Color.stsBorder, lineWidth: 1)
         )
         .sheet(isPresented: $showDetailPopup) {
             if let day = selectedDay {
@@ -536,12 +536,16 @@ struct RecurringExpenseCalendarCard: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(Color(hex: "29334D"))
+            .background(Color.stsElevated)
             .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.stsBorder, lineWidth: 1)
+            )
             
             Spacer()
             
-            // Right Pill: [ < | 🗓️ | > ]
+            // Right Pill: [ < | cal | > ]
             HStack(spacing: 16) {
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -575,8 +579,12 @@ struct RecurringExpenseCalendarCard: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(Color(hex: "29334D"))
+            .background(Color.stsElevated)
             .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color.stsBorder, lineWidth: 1)
+            )
         }
     }
     
@@ -586,7 +594,7 @@ struct RecurringExpenseCalendarCard: View {
             ForEach(daysOfWeek, id: \.self) { day in
                 Text(day)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color(hex: "7C8BA6"))
+                    .foregroundStyle(Color.stsSecondary)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -629,10 +637,10 @@ struct RecurringExpenseCalendarCard: View {
                 ZStack(alignment: .topLeading) {
                     // Rounded Squircle Card
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(hex: "27324B"))
+                        .fill(Color.stsElevated)
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                                .stroke(Color.stsBorder, lineWidth: 1)
                         )
                         .overlay(
                             // Centered Colorful Brand Icon Badge (size 28 with full brand colors)
@@ -648,11 +656,11 @@ struct RecurringExpenseCalendarCard: View {
                         .font(.system(size: 9.5, weight: .heavy))
                         .foregroundStyle(.white)
                         .frame(width: 19, height: 19)
-                        .background(Color(hex: "4A567A"))
+                        .background(Color.stsAccent)
                         .clipShape(Circle())
                         .overlay(
                             Circle()
-                                .stroke(Color(hex: "182136"), lineWidth: 1.5)
+                                .stroke(Color.stsCardBackground, lineWidth: 1.5)
                         )
                         .shadow(color: Color.black.opacity(0.3), radius: 1, y: 1)
                 }
@@ -664,14 +672,14 @@ struct RecurringExpenseCalendarCard: View {
                     .font(.system(size: 13, weight: isToday ? .bold : .medium))
                     .foregroundStyle(
                         isToday ? .white :
-                        (dayInfo.isCurrentMonth ? Color(hex: "8A97AF") : Color(hex: "404B63"))
+                        (dayInfo.isCurrentMonth ? Color.white.opacity(0.85) : Color.stsTertiary)
                     )
                     .frame(maxWidth: .infinity)
                     .frame(height: 46)
                     .background(
                         isToday ?
                         Circle()
-                            .stroke(Color.white.opacity(0.8), lineWidth: 1.5)
+                            .stroke(Color.stsAccent, lineWidth: 1.5)
                             .frame(width: 28, height: 28)
                         : nil
                     )
@@ -1020,15 +1028,21 @@ struct RecurringDateDetailPopup: View {
                                     .font(.stsCaption)
                                     .foregroundStyle(.stsPrimary)
                                 
-                                Text(record.isPaid ? "Paid ✓" : "Due")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(record.isPaid ? .stsAccent : .stsWarning)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(
-                                        (record.isPaid ? Color.stsAccent : Color.stsWarning).opacity(0.15)
-                                    )
-                                    .clipShape(Capsule())
+                                HStack(spacing: 3) {
+                                    if record.isPaid {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 8, weight: .bold))
+                                    }
+                                    Text(record.isPaid ? "Paid" : "Due")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                                .foregroundStyle(record.isPaid ? .stsAccent : .stsWarning)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    (record.isPaid ? Color.stsAccent : Color.stsWarning).opacity(0.15)
+                                )
+                                .clipShape(Capsule())
                             }
                             .padding(.vertical, 4)
                         }
@@ -1311,10 +1325,8 @@ struct AddRecurringExpenseSheet: View {
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
-                                .background(
-                                    LinearGradient(colors: [.stsAccent, .stsCyan], startPoint: .leading, endPoint: .trailing)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .background(Color.stsAccent)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
                         .disabled(name.isEmpty || amount.isEmpty)
                         .opacity(name.isEmpty || amount.isEmpty ? 0.6 : 1)

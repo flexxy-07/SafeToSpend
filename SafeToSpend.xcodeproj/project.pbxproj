@@ -24,6 +24,12 @@
 		E38B24CD74A5F1C93DAA0F18 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60AB4094EB4068DFED5EE12F /* DashboardView.swift */; };
 		E8375829D3A54111D56E9D3B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28FED2BCED00A19A9AF89BA /* Theme.swift */; };
 		EFA6EBE58D74A09EEFE00E7E /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DF77DB54093229129CF315 /* MainTabView.swift */; };
+		B10000010000000000000001 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000001 /* ExportService.swift */; };
+		B10000010000000000000002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000002 /* NotificationService.swift */; };
+		B10000010000000000000003 /* SecurityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000003 /* SecurityManager.swift */; };
+		B10000010000000000000004 /* ExportDataSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000004 /* ExportDataSheet.swift */; };
+		B10000010000000000000005 /* DailyReminderSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000005 /* DailyReminderSheet.swift */; };
+		B10000010000000000000006 /* PrivacySecuritySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000006 /* PrivacySecuritySheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +51,12 @@
 		D0DF77DB54093229129CF315 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		D28FED2BCED00A19A9AF89BA /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		EE5179B8BECF3357AF7CB041 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		F10000010000000000000001 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		F10000010000000000000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		F10000010000000000000003 /* SecurityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityManager.swift; sourceTree = "<group>"; };
+		F10000010000000000000004 /* ExportDataSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataSheet.swift; sourceTree = "<group>"; };
+		F10000010000000000000005 /* DailyReminderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReminderSheet.swift; sourceTree = "<group>"; };
+		F10000010000000000000006 /* PrivacySecuritySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySecuritySheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -128,6 +140,12 @@
 			children = (
 				60AB4094EB4068DFED5EE12F /* DashboardView.swift */,
 				6468578DF5713E235787C9B1 /* RecurringExpenseCalendarView.swift */,
+				F10000010000000000000001 /* ExportService.swift */,
+				F10000010000000000000002 /* NotificationService.swift */,
+				F10000010000000000000003 /* SecurityManager.swift */,
+				F10000010000000000000004 /* ExportDataSheet.swift */,
+				F10000010000000000000005 /* DailyReminderSheet.swift */,
+				F10000010000000000000006 /* PrivacySecuritySheet.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -267,6 +285,12 @@
 				B19612368804C8B28FF94F30 /* RecurringExpenseCalendarView.swift in Sources */,
 				5C753850FEAA122D7E23CCC1 /* SafeToSpendApp.swift in Sources */,
 				E8375829D3A54111D56E9D3B /* Theme.swift in Sources */,
+				B10000010000000000000001 /* ExportService.swift in Sources */,
+				B10000010000000000000002 /* NotificationService.swift in Sources */,
+				B10000010000000000000003 /* SecurityManager.swift in Sources */,
+				B10000010000000000000004 /* ExportDataSheet.swift in Sources */,
+				B10000010000000000000005 /* DailyReminderSheet.swift in Sources */,
+				B10000010000000000000006 /* PrivacySecuritySheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -281,6 +305,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_KEY_CFBundleDisplayName = SafeToSpend;
 				INFOPLIST_KEY_NSCameraUsageDescription = "SafeToSpend uses the camera to scan bill receipts for automatic expense tracking.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "SafeToSpend uses Face ID to secure your financial data and authenticate access.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SafeToSpend lets you pick payment screenshots to automatically extract and log your expenses.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -365,6 +390,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_KEY_CFBundleDisplayName = SafeToSpend;
 				INFOPLIST_KEY_NSCameraUsageDescription = "SafeToSpend uses the camera to scan bill receipts for automatic expense tracking.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "SafeToSpend uses Face ID to secure your financial data and authenticate access.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "SafeToSpend lets you pick payment screenshots to automatically extract and log your expenses.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
