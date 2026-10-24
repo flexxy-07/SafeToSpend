@@ -8,6 +8,7 @@ struct DashboardView: View {
     @State private var isLoading = true
     @State private var showInsightsSheet = false
     @State private var showAddExpenseSheet = false
+    @State private var isHeroExpanded = true
     @State private var isBreakdownExpanded = true
     @State private var isCycleExpanded = true
     @State private var isInsightsExpanded = true
@@ -167,7 +168,7 @@ struct DashboardView: View {
     private var heroCard: some View {
         VStack(spacing: 16) {
             // Header: Safe to Spend
-            HStack {
+            HStack(spacing: 8) {
                 HStack(spacing: 6) {
                     Image(systemName: "mountain.2.fill")
                         .font(.system(size: 12))
@@ -182,79 +183,173 @@ struct DashboardView: View {
                 Spacer()
                 
                 HankoSealStamp(kanji: "日", label: "TODAY", color: .zenCrimson)
+                
+                Button {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                        isHeroExpanded.toggle()
+                        Haptics.impact(.medium)
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(isHeroExpanded ? "COLLAPSE" : "EXPAND")
+                            .font(.system(size: 10, weight: .bold, design: .serif))
+                        Image(systemName: isHeroExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(Color.zenCrimson)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.zenCrimson.opacity(0.08))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color.zenCrimson.opacity(0.2), lineWidth: 1)
+                    )
+                }
             }
             
             if isLoading {
                 loadingPlaceholder
             } else if let data = todayData {
-                ZStack {
-                    // Soft ambient radiant aura behind the allowance amount
-                    RadialGradient(
-                        colors: [Color.zenCrimson.opacity(0.08), Color.zenGold.opacity(0.04), Color.clear],
-                        center: .center,
-                        startRadius: 10,
-                        endRadius: 90
-                    )
-                    .frame(height: 100)
-                    
-                    VStack(spacing: 4) {
-                        Text(data.stsPaise.toRupees)
-                            .font(.zenHeading(38, weight: .bold))
-                            .foregroundStyle(Color.zenInk)
-                            .contentTransition(.numericText())
-                            .scaleEffect(animateAmount ? 1.0 : 0.8)
-                            .opacity(animateAmount ? 1.0 : 0)
+                if isHeroExpanded {
+                    ZStack {
+                        // Soft ambient radiant aura behind the allowance amount
+                        RadialGradient(
+                            colors: [Color.zenCrimson.opacity(0.08), Color.zenGold.opacity(0.04), Color.clear],
+                            center: .center,
+                            startRadius: 10,
+                            endRadius: 90
+                        )
+                        .frame(height: 100)
                         
-                        Text("Safe Allowance for Today")
-                            .font(.zenBody(13, weight: .medium))
-                            .foregroundStyle(Color.zenPlumGrey)
+                        VStack(spacing: 4) {
+                            Text(data.stsPaise.toRupees)
+                                .font(.zenHeading(38, weight: .bold))
+                                .foregroundStyle(Color.zenInk)
+                                .contentTransition(.numericText())
+                                .scaleEffect(animateAmount ? 1.0 : 0.8)
+                                .opacity(animateAmount ? 1.0 : 0)
+                            
+                            Text("Safe Allowance for Today")
+                                .font(.zenBody(13, weight: .medium))
+                                .foregroundStyle(Color.zenPlumGrey)
+                        }
                     }
-                }
-                .padding(.vertical, 4)
-                
-                KatanaDivider()
-                
-                // Horizontal 3-metric summary
-                HStack(spacing: 20) {
-                    VStack(spacing: 3) {
-                        Text("per day")
-                            .font(.zenBody(11))
-                            .foregroundStyle(Color.zenPlumGrey)
+                    .padding(.vertical, 4)
+                    
+                    KatanaDivider()
+                    
+                    // Horizontal 3-metric summary
+                    HStack(spacing: 20) {
+                        VStack(spacing: 3) {
+                            Text("per day")
+                                .font(.zenBody(11))
+                                .foregroundStyle(Color.zenPlumGrey)
+                            
+                            Text(perDay(data))
+                                .font(.zenNumber(16, weight: .bold))
+                                .foregroundStyle(Color.zenCrimson)
+                        }
                         
-                        Text(perDay(data))
-                            .font(.zenNumber(16, weight: .bold))
-                            .foregroundStyle(Color.zenCrimson)
-                    }
-                    
-                    Divider().frame(height: 28).background(Color.zenPlumBorder)
-                    
-                    VStack(spacing: 3) {
-                        Text("days left")
-                            .font(.zenBody(11))
-                            .foregroundStyle(Color.zenPlumGrey)
+                        Divider().frame(height: 28).background(Color.zenPlumBorder)
                         
-                        Text("\(data.daysRemaining)")
-                            .font(.zenNumber(16, weight: .bold))
-                            .foregroundStyle(Color.zenInk)
-                    }
-                    
-                    Divider().frame(height: 28).background(Color.zenPlumBorder)
-                    
-                    VStack(spacing: 3) {
-                        Text("pool")
-                            .font(.zenBody(11))
-                            .foregroundStyle(Color.zenPlumGrey)
+                        VStack(spacing: 3) {
+                            Text("days left")
+                                .font(.zenBody(11))
+                                .foregroundStyle(Color.zenPlumGrey)
+                            
+                            Text("\(data.daysRemaining)")
+                                .font(.zenNumber(16, weight: .bold))
+                                .foregroundStyle(Color.zenInk)
+                        }
                         
-                        Text(data.poolPaise.toRupees)
-                            .font(.zenNumber(16, weight: .bold))
-                            .foregroundStyle(Color.zenJade)
+                        Divider().frame(height: 28).background(Color.zenPlumBorder)
+                        
+                        VStack(spacing: 3) {
+                            Text("pool")
+                                .font(.zenBody(11))
+                                .foregroundStyle(Color.zenPlumGrey)
+                            
+                            Text(data.poolPaise.toRupees)
+                                .font(.zenNumber(16, weight: .bold))
+                                .foregroundStyle(Color.zenJade)
+                        }
                     }
+                } else {
+                    // Collapsed compact row
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(data.stsPaise.toRupees)
+                                .font(.zenHeading(24, weight: .bold))
+                                .foregroundStyle(Color.zenInk)
+                            
+                            Text("Safe for today")
+                                .font(.zenBody(11, weight: .medium))
+                                .foregroundStyle(Color.zenPlumGrey)
+                        }
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 10) {
+                            VStack(spacing: 2) {
+                                Text(perDay(data))
+                                    .font(.zenNumber(13, weight: .bold))
+                                    .foregroundStyle(Color.zenCrimson)
+                                Text("per day")
+                                    .font(.zenBody(10))
+                                    .foregroundStyle(Color.zenPlumGrey)
+                            }
+                            
+                            Divider()
+                                .frame(height: 20)
+                                .background(Color.zenPlumBorder)
+                            
+                            VStack(spacing: 2) {
+                                Text("\(data.daysRemaining)d")
+                                    .font(.zenNumber(13, weight: .bold))
+                                    .foregroundStyle(Color.zenInk)
+                                Text("left")
+                                    .font(.zenBody(10))
+                                    .foregroundStyle(Color.zenPlumGrey)
+                            }
+                            
+                            Divider()
+                                .frame(height: 20)
+                                .background(Color.zenPlumBorder)
+                            
+                            VStack(spacing: 2) {
+                                Text(data.poolPaise.toRupees)
+                                    .font(.zenNumber(13, weight: .bold))
+                                    .foregroundStyle(Color.zenJade)
+                                Text("pool")
+                                    .font(.zenBody(10))
+                                    .foregroundStyle(Color.zenPlumGrey)
+                            }
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.zenMist.opacity(0.35))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color.zenPlumBorder.opacity(0.4), lineWidth: 1)
+                        )
+                    }
+                    .padding(.top, -2)
                 }
             } else {
                 noDataView
             }
         }
         .glassCard(variant: .default, cornerRadius: 24)
+        .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .highPriorityGesture(
+            TapGesture(count: 2).onEnded {
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                    isHeroExpanded.toggle()
+                    Haptics.impact(.medium)
+                }
+            }
+        )
     }
     
     // MARK: - Cycle Progress

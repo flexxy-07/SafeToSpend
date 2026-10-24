@@ -78,88 +78,104 @@ struct OnboardingView: View {
     // MARK: - Step 0: Welcome Step (Landing Page)
     private var welcomeStep: some View {
         VStack(spacing: 0) {
-            Spacer()
+            Spacer(minLength: 40)
             
-            VStack(spacing: 20) {
-                // Themed Shield Logo (Transparent background, Crimson Lacquer & Ambient Gold Aura)
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color.zenGold.opacity(0.35), Color.zenBlossomPink.opacity(0.12), Color.clear],
-                                center: .center,
-                                startRadius: 10,
-                                endRadius: 75
-                            )
-                        )
-                        .frame(width: 150, height: 150)
-                    
-                    Image("zen_shield_logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 110, height: 110)
-                        .shadow(color: Color.zenCrimson.opacity(0.35), radius: 14, y: 5)
-                }
+            // Left-aligned Thematic Visual: Red Lucky Fortune Pouch with decreased size and soft opacity
+            HStack {
+                Image("zen_lucky_envelope")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 140, height: 155)
+                    .opacity(0.48)
+                    .shadow(color: Color.zenCrimson.opacity(0.12), radius: 14, y: 5)
+                    .shadow(color: Color.zenGold.opacity(0.18), radius: 10, y: 3)
+                    .padding(.leading, 16)
                 
-                // Enlarged Theme Heading (Serif Japanese Zen style)
+                Spacer()
+            }
+            
+            Spacer().frame(height: 20)
+            
+            // Bottom Content Block (Left-aligned orientation matching reference)
+            VStack(alignment: .leading, spacing: 14) {
                 Text("SafeToSpend")
-                    .font(.system(size: 48, weight: .bold, design: .serif))
+                    .font(.custom("HiraMinProN-W6", size: 48))
                     .foregroundStyle(Color.zenInk)
                     .tracking(0.6)
-                    .shadow(color: Color.white.opacity(0.85), radius: 12, x: 0, y: 2)
+                    .shadow(color: Color.white.opacity(0.85), radius: 10, x: 0, y: 2)
                 
-                // Small concise description without any white box behind it
                 Text("Know exactly what is safe to spend today after your bills and savings are protected.")
                     .font(.system(size: 15, weight: .medium, design: .default))
                     .foregroundStyle(Color.zenPlumGrey)
-                    .multilineTextAlignment(.center)
                     .lineSpacing(4)
-                    .padding(.horizontal, 32)
                     .shadow(color: Color.white.opacity(0.95), radius: 8, x: 0, y: 1)
             }
-            
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 20)
         }
         .frame(maxWidth: .infinity)
     }
     
     private var balanceStep: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                Spacer(minLength: 20)
+            VStack(alignment: .leading, spacing: 20) {
+                Spacer(minLength: 16)
                 
-                stepHeader(
-                    icon: "wallet.pass.fill",
-                    title: "What's your balance?",
-                    subtitle: "Enter your current available bank balance"
-                )
+                // Provided Thematic Lucky Envelope Icon
+                Image("zen_lucky_envelope")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 90)
+                    .shadow(color: Color.zenCrimson.opacity(0.18), radius: 12, y: 5)
+                    .shadow(color: Color.zenGold.opacity(0.24), radius: 8, y: 2)
                 
-                VStack(spacing: 8) {
-                    HStack(alignment: .center, spacing: 4) {
+                // Left-aligned Title & Subtitle matching landing page alignment & theme
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("What's your balance?")
+                        .font(.custom("HiraMinProN-W6", size: 32))
+                        .foregroundStyle(Color.zenInk)
+                        .tracking(0.4)
+                        .shadow(color: Color.white.opacity(0.85), radius: 8, x: 0, y: 1)
+                    
+                    Text("Enter your current available bank balance")
+                        .font(.system(size: 15, weight: .medium, design: .default))
+                        .foregroundStyle(Color.zenPlumGrey)
+                }
+                
+                // Left-aligned Input Area
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text("₹")
-                            .font(.stsHeroAmount)
-                            .foregroundStyle(.stsAccent)
+                            .font(.system(size: 40, weight: .bold, design: .serif))
+                            .foregroundStyle(Color.zenCrimson)
                         
                         TextField("0", text: $balanceText)
-                            .font(.stsHeroAmount)
-                            .foregroundStyle(.stsPrimary)
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.zenInk)
                             .keyboardType(.numberPad)
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.leading)
                     }
                     
                     Rectangle()
-                        .fill(Color.stsAccent.opacity(0.3))
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.zenCrimson.opacity(0.6), Color.zenGold.opacity(0.4), Color.zenMist.opacity(0.1)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .frame(height: 2)
-                        .padding(.horizontal, 40)
+                    
+                    Text("This is the money you have right now")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.zenLavenderGrey)
                 }
-                
-                Text("This is the money you have right now")
-                    .font(.stsCaption)
-                    .foregroundStyle(.stsTertiary)
+                .padding(.top, 10)
                 
                 Spacer(minLength: 40)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
         }
         .scrollBounceBehavior(.always, axes: .vertical)
@@ -168,14 +184,21 @@ struct OnboardingView: View {
     
     private var cycleStep: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                Spacer(minLength: 20)
+            VStack(alignment: .leading, spacing: 20) {
+                Spacer(minLength: 16)
                 
-                stepHeader(
-                    icon: "calendar.circle.fill",
-                    title: "Your pay cycle",
-                    subtitle: "When does your salary month start & end?"
-                )
+                // Left-aligned Title & Subtitle matching theme (No icon above heading as requested)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Your pay cycle")
+                        .font(.custom("HiraMinProN-W6", size: 32))
+                        .foregroundStyle(Color.zenInk)
+                        .tracking(0.4)
+                        .shadow(color: Color.white.opacity(0.85), radius: 8, x: 0, y: 1)
+                    
+                    Text("When does your salary month start & end?")
+                        .font(.system(size: 15, weight: .medium, design: .default))
+                        .foregroundStyle(Color.zenPlumGrey)
+                }
                 
                 VStack(spacing: 16) {
                     datePickerCard(
@@ -190,10 +213,11 @@ struct OnboardingView: View {
                         date: $cycleEndDate
                     )
                 }
+                .padding(.top, 10)
                 
                 Spacer(minLength: 40)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
         }
         .scrollBounceBehavior(.always, axes: .vertical)
@@ -201,18 +225,26 @@ struct OnboardingView: View {
     
     private var safetyStep: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                Spacer(minLength: 20)
+            VStack(alignment: .leading, spacing: 20) {
+                Spacer(minLength: 16)
                 
-                stepHeader(
-                    icon: "shield.checkered",
-                    title: "Safety Net",
-                    subtitle: "Optional: set aside money you don't want to touch"
-                )
+                // Left-aligned Title & Subtitle matching theme (No icon above heading as requested)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Safety Net")
+                        .font(.custom("HiraMinProN-W6", size: 32))
+                        .foregroundStyle(Color.zenInk)
+                        .tracking(0.4)
+                        .shadow(color: Color.white.opacity(0.85), radius: 8, x: 0, y: 1)
+                    
+                    Text("Optional: set aside money you don't want to touch")
+                        .font(.system(size: 15, weight: .medium, design: .default))
+                        .foregroundStyle(Color.zenPlumGrey)
+                }
                 
                 VStack(spacing: 16) {
                     inputCard(
                         title: "Safety Buffer",
+                        icon: "shield.lefthalf.filled",
                         placeholder: "0",
                         text: $safetyBufferText,
                         hint: "Emergency cushion (won't be counted as spendable)"
@@ -220,19 +252,26 @@ struct OnboardingView: View {
                     
                     inputCard(
                         title: "Savings Reserve",
+                        icon: "banknote.fill",
                         placeholder: "0",
                         text: $savingsText,
                         hint: "Money you're saving this cycle"
                     )
                 }
+                .padding(.top, 10)
                 
-                Text("You can skip this and set it later")
-                    .font(.stsCaption)
-                    .foregroundStyle(.stsTertiary)
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 13, weight: .medium))
+                    Text("You can skip this and adjust anytime later")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .foregroundStyle(Color.zenLavenderGrey)
+                .padding(.leading, 4)
                 
                 Spacer(minLength: 40)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
         }
         .scrollBounceBehavior(.always, axes: .vertical)
@@ -241,63 +280,86 @@ struct OnboardingView: View {
     
     // MARK: - Reusable Components
     
-    private func stepHeader(icon: String, title: String, subtitle: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 40))
-                .foregroundStyle(.stsAccent)
-                .symbolEffect(.bounce, value: currentStep)
-            
-            Text(title)
-                .font(.stsTitle)
-                .foregroundStyle(.stsPrimary)
-            
-            Text(subtitle)
-                .font(.stsBody)
-                .foregroundStyle(.stsSecondary)
-                .multilineTextAlignment(.center)
-        }
-    }
-    
     private func datePickerCard(title: String, icon: String, date: Binding<Date>) -> some View {
         HStack {
             Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(.stsAccent)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(Color.zenCrimson)
             
             Text(title)
-                .font(.stsHeadline)
-                .foregroundStyle(.stsPrimary)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.zenInk)
             
             Spacer()
             
-            DatePicker("", selection: date, displayedComponents: .date)
-                .labelsHidden()
-                .tint(.stsAccent)
+            // Explicit formatted date badge ensuring consistent "24 Nov 2026" format
+            ZStack {
+                Text(formatCycleDate(date.wrappedValue))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.zenInk)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color.white.opacity(0.85))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.zenPlumBorder, lineWidth: 1)
+                    )
+                    .shadow(color: Color.zenInk.opacity(0.04), radius: 4, y: 2)
+                
+                DatePicker("", selection: date, displayedComponents: .date)
+                    .labelsHidden()
+                    .opacity(0.015)
+            }
         }
         .cardStyle()
     }
     
-    private func inputCard(title: String, placeholder: String, text: Binding<String>, hint: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.stsCaption)
-                .foregroundStyle(.stsSecondary)
-            
-            HStack {
-                Text("₹")
-                    .font(.stsTitle)
-                    .foregroundStyle(.stsAccent)
+    private func formatCycleDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM yyyy"
+        return formatter.string(from: date)
+    }
+    
+    private func inputCard(title: String, icon: String, placeholder: String, text: Binding<String>, hint: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Color.zenCrimson)
                 
-                TextField(placeholder, text: text)
-                    .font(.stsTitle)
-                    .foregroundStyle(.stsPrimary)
-                    .keyboardType(.numberPad)
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.zenInk)
+                
+                Spacer()
             }
             
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("₹")
+                    .font(.system(size: 24, weight: .bold, design: .serif))
+                    .foregroundStyle(Color.zenCrimson)
+                
+                TextField(placeholder, text: text)
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.zenInk)
+                    .keyboardType(.numberPad)
+            }
+            .padding(.vertical, 2)
+            
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.zenCrimson.opacity(0.35), Color.zenGold.opacity(0.2), Color.clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+            
             Text(hint)
-                .font(.stsSmall)
-                .foregroundStyle(.stsTertiary)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.zenPlumGrey)
         }
         .cardStyle()
     }
@@ -340,21 +402,23 @@ struct OnboardingView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text(currentStep == 0 ? "Begin Journey" : (currentStep == steps.count - 1 ? "Honor My Budget" : "Continue"))
-                            .font(.zenHeading(16, weight: .bold))
+                        Text((currentStep == 0 || currentStep == steps.count - 1) ? "Get Started" : "Continue")
+                            .font(.zenHeading(17, weight: .bold))
                         
-                        Image(systemName: currentStep == steps.count - 1 ? "checkmark" : "arrow.right")
-                            .font(.system(size: 14, weight: .bold))
+                        if currentStep > 0 {
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 14, weight: .bold))
+                        }
                     }
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: currentStep == 0 ? .infinity : nil)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 16)
+                .padding(.horizontal, currentStep == 0 ? 0 : 32)
+                .padding(.vertical, 18)
                 .background(LinearGradient.zenCtaGradient)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(Capsule())
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    Capsule()
                         .stroke(Color.zenGold.opacity(0.7), lineWidth: 1)
                 )
                 .shadow(color: Color.zenCrimson.opacity(0.35), radius: 10, y: 4)
